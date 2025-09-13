@@ -178,4 +178,6 @@ nginx/
 storage/*
 legacy/
 static/*
+staticfiles/
+backend/staticfiles/
 !**/static/
