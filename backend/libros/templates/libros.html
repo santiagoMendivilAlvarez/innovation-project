@@ -1,0 +1,22 @@
+{% extends "utils/base.html" %}
+{% load static %}
+
+
+
+
+{% block content %}
+
+<div class="col-md-12">
+    <h2>Lista de Libros</h2>
+    <ul class="list-group">
+        {% for libro in libros %}
+            <li class="list-group-item">
+                <strong>{{ libro.titulo }}</strong> por {{ libro.autor }} ({{ libro.anio_publicacion }})
+            </li>
+        {% empty %}
+            <li class="list-group-item">No hay libros disponibles.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endblock content %}
