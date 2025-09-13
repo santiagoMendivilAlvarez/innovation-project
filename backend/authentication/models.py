@@ -1,9 +1,14 @@
-from django.db import models
+"""
+Models for the custom user in the authentication app.
+"""
+from django.db                  import models
 from django.contrib.auth.models import AbstractUser
 
 
-
 class CustomUser(AbstractUser):
+    """
+    Custom user model extending AbstractUser with additional fields.
+    """
     universidad = models.CharField(
         max_length   = 150,
         blank        = True,
@@ -41,3 +46,6 @@ class CustomUser(AbstractUser):
         verbose_name = "Fecha de Suscripción",
         help_text    = "La fecha y hora en que se activó la suscripción del usuario."
     )
+
+    def __str__(self: 'CustomUser') -> str:
+        return f"{self.username} ({self.email})"

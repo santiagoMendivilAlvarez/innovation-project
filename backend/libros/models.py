@@ -6,6 +6,9 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Categoria(models.Model):
+    """
+    Model that represents a book category.
+    """
     nombre = models.CharField(
         max_length   = 100,
         unique       = True,
@@ -26,10 +29,10 @@ class Categoria(models.Model):
     )
 
     class Meta:
-        verbose_name = "Categoría"
+        verbose_name        = "Categoría"
         verbose_name_plural = "Categorías"
 
-    def __str__(self):
+    def __str__(self: 'Categoria') -> str:
         return self.nombre
 
 
@@ -112,15 +115,18 @@ class Libro(models.Model):
     )
 
     class Meta:
-        verbose_name = "Libro"
+        verbose_name        = "Libro"
         verbose_name_plural = "Libros"
-        ordering = ['-fecha_creacion']
+        ordering            = ['-fecha_creacion']
 
-    def __str__(self):
+    def __str__(self: 'Libro') -> str:
         return f"{self.titulo} - {self.autor}"
 
 
 class FuenteLibro(models.Model):
+    """
+    Model that represents a source where the book can be found.
+    """
     libro = models.ForeignKey(
         Libro,
         on_delete    = models.CASCADE,
@@ -160,14 +166,17 @@ class FuenteLibro(models.Model):
     )
 
     class Meta:
-        verbose_name = "Fuente del Libro"
+        verbose_name        = "Fuente del Libro"
         verbose_name_plural = "Fuentes del Libro"
 
-    def __str__(self):
+    def __str__(self: 'FuenteLibro') -> str:
         return f"Fuente '{self.nombre_fuente}' para {self.libro.titulo}"
 
 
 class Resena(models.Model):
+    """
+    Model that represents a review for a book.
+    """
     libro = models.ForeignKey(
         Libro,
         on_delete    = models.CASCADE,
@@ -200,3 +209,6 @@ class Resena(models.Model):
         verbose_name = "Fecha de Creación",
         help_text    = "Fecha y hora en que se creó el registro."
     )
+
+    def __str__(self: 'Resena') -> str:
+        return f"Reseña de {self.autor_resena} para {self.libro.titulo}"

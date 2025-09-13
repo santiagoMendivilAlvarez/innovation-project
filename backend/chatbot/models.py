@@ -1,18 +1,24 @@
 """
-Model for the Chatbot application.
+Models for the Chatbot application.
 """
-from django.db import models
+from django.db           import models
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
 class TiposEstado(models.TextChoices):
+    """
+    Types of conversation states.
+    """
     ACTIVA   = 'activa'   , 'Activa'
     INACTIVA = 'inactiva' , 'Inactiva'
     CERRADA  = 'cerrada'  , 'Cerrada'
 
 
 class ConversacionChat(models.Model):
+    """
+    Model representing a chat conversation between a user and the chatbot.
+    """
     usuario = models.ForeignKey(
         User,
         on_delete    = models.CASCADE,
@@ -54,6 +60,9 @@ class ConversacionChat(models.Model):
 
 
 class MensajeChat(models.Model):
+    """
+    Model representing a message in a chat conversation.
+    """
     conversacion = models.ForeignKey(
         ConversacionChat,
         on_delete    = models.CASCADE,

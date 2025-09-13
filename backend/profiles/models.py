@@ -1,6 +1,6 @@
-from django.db import models
-from libros.models import Libro, Categoria
-from django.contrib.auth import get_user_model
+from django.db              import models
+from libros.models          import Libro, Categoria
+from django.contrib.auth    import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 User = get_user_model()
 
@@ -61,7 +61,7 @@ class Recomendacion(models.Model):
         verbose_name        = "Recomendación"
         verbose_name_plural = "Recomendaciones"
 
-    def __str__(self):
+    def __str__(self: 'Recomendacion') -> str:
         return f"Recomendación de {self.usuario.username} para {self.libro.titulo}"
 
 
@@ -93,7 +93,7 @@ class Favorito(models.Model):
         verbose_name = "Favorito"
         verbose_name_plural = "Favoritos"
 
-    def __str__(self):
+    def __str__(self: 'Favorito') -> str:
         return f"{self.usuario.username} - {self.libro.titulo}"
 
 
@@ -135,5 +135,5 @@ class InteresUsuario(models.Model):
         verbose_name   = "Interés de Usuario"
         verbose_name_plural = "Intereses de Usuario"
 
-    def __str__(self):
+    def __str__(self: 'InteresUsuario') -> str:
         return f"{self.usuario.username} - {self.genero} (Nivel: {self.nivel_interes})"
