@@ -7,4 +7,5 @@ from libros      import views
 
 urlpatterns = [
     path('', views.view, name='libros'),
+    path("books/", views.book_search, name="book_search"),
 ]
