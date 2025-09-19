@@ -1,0 +1,466 @@
+{% extends 'utils/base_guest.html' %}
+
+{% block title %}Confirmar correo electrónico - BookieWookie{% endblock %}
+
+{% block extra_css %}
+<style>
+.container {
+        width: 90%;          
+        max-width: 900px;
+        margin: 80px auto;
+        padding: 30px;
+    }
+    .confirm-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid #e0e0e0;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #bbdefb, #90caf9);
+        color: #1976d2;
+        text-align: center;
+        padding: 30px;
+        font-size: 28px;
+        font-weight: 600;
+    }
+    
+    .card-body {
+        padding: 40px;
+    }
+    
+    .info-section {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #666;
+        line-height: 1.6;
+    }
+    
+    .info-section p {
+        margin: 10px 0;
+        font-size: 16px;
+    }
+    
+    .user-email {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #1976d2;
+        font-weight: 600;
+        color: #1976d2;
+        margin: 20px 0;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 15px;
+        color: #333;
+        font-weight: 500;
+        font-size: 16px;
+    }
+    
+    .code-input {
+        width: 200px;
+        padding: 20px;
+        border: 3px solid #1976d2;
+        border-radius: 12px;
+        font-size: 24px;
+        text-align: center;
+        letter-spacing: 8px;
+        font-weight: bold;
+        background: #f8f9fa;
+        transition: all 0.3s;
+        outline: none;
+    }
+    
+    .code-input:focus {
+        background: white;
+        border-color: #1565c0;
+        box-shadow: 0 0 20px rgba(25, 118, 210, 0.3);
+    }
+    
+    .code-input::placeholder {
+        color: #bbb;
+        letter-spacing: normal;
+        font-weight: normal;
+        font-size: 16px;
+    }
+    
+    .resend-section {
+        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 30px 0;
+        text-align: center;
+        border: 2px dotted #1976d2;
+    }
+    
+    .countdown {
+        font-size: 16px;
+        color: #0d47a1;
+        font-weight: 600;
+        margin: 10px 0;
+    }
+    
+    .resend-link {
+        display: inline-block;
+        background: #1976d2;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s;
+        margin-top: 10px;
+    }
+    
+    .resend-link:hover {
+        background: #1565c0;
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .resend-link.disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .resend-link.disabled:hover {
+        background: #ccc;
+        transform: none;
+    }
+    
+    .form-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        font-size: 16px;
+        min-width: 120px;
+        box-sizing: border-box;
+    }
+    
+    .btn-primary {
+        background: #1976d2;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #1565c0;
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background: #f5f5f5;
+        color: #666;
+        border: 2px solid #e0e0e0;
+    }
+    
+    .btn-secondary:hover {
+        background: #e0e0e0;
+        border-color: #ccc;
+        text-decoration: none;
+        color: #666;
+    }
+    
+    .messages {
+        margin-bottom: 20px;
+    }
+    
+    .message {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    
+    .message.success {
+        background: #e8f5e8;
+        color: #2e7d32;
+        border-left: 4px solid #4caf50;
+    }
+    
+    .message.error {
+        background: #ffebee;
+        color: #c62828;
+        border-left: 4px solid #f44336;
+    }
+    
+    .message.warning {
+        background: #fff8e1;
+        color: #f57c00;
+        border-left: 4px solid #ff9800;
+    }
+    
+    .attempts-info {
+        background: #fff3e0;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        text-align: center;
+        border: 1px solid #ffcc02;
+    }
+    
+    .attempts-remaining {
+        font-weight: 600;
+        color: #e65100;
+    }
+    
+    .back-link {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    
+    .back-link a {
+        color: #1976d2;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            margin: 40px auto;
+            padding: 15px;
+        }
+        
+        .card-body {
+            padding: 30px 20px;
+        }
+        
+        .code-input {
+            width: 180px;
+            font-size: 20px;
+            letter-spacing: 6px;
+        }
+        
+        .form-buttons {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .form-buttons .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="confirm-card">
+        <div class="card-header">
+            Confirmar correo electrónico
+        </div>
+        
+        <div class="card-body">
+            <div class="info-section">
+                <p>Hemos enviado un código de verificación de 6 dígitos a:</p>
+                <div class="user-email">
+                    {{ user_email|default:"tu correo electrónico" }}
+                </div>
+                <p>Revisa tu bandeja de entrada y spam. El código es válido por 10 minutos.</p>
+            </div>
+            
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% if attempts_remaining %}
+                <div class="attempts-info">
+                    <span class="attempts-remaining">{{ attempts_remaining }} intento{{ attempts_remaining|pluralize }} restante{{ attempts_remaining|pluralize }}</span>
+                </div>
+            {% endif %}
+            
+            <form method="post" id="confirmForm">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="codigo">Código que se envió a tu correo</label>
+                    <input type="text" 
+                           id="codigo" 
+                           name="codigo" 
+                           class="code-input"
+                           placeholder="123456"
+                           maxlength="6"
+                           pattern="[0-9]{6}"
+                           autocomplete="one-time-code"
+                           required>
+                </div>
+                
+                <div class="form-buttons">
+                    <a href="{% url 'register' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Confirmar correo</button>
+                </div>
+            </form>
+            
+            <div class="resend-section">
+                <p>¿No recibiste el código?</p>
+                <div class="countdown" id="countdown">
+                    Enviar nuevo código dentro de <span id="timer">1:20</span> seg
+                </div>
+                <a href="#" class="resend-link disabled" id="resendLink">Reenviar código</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const codigoInput = document.getElementById('codigo');
+        codigoInput.focus();
+        
+        codigoInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            if (this.value.length === 6) {
+                setTimeout(function() {
+                    document.getElementById('confirmForm').submit();
+                }, 500);
+            }
+        });
+        
+        let timeLeft = 80;
+        const timerElement = document.getElementById('timer');
+        const countdownElement = document.getElementById('countdown');
+        const resendLink = document.getElementById('resendLink');
+        let timerInterval;
+        
+        const updateTimer = () => {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                countdownElement.style.display = 'none';
+                resendLink.classList.remove('disabled');
+                resendLink.textContent = 'Reenviar código';
+                clearInterval(timerInterval);
+            } else {
+                timeLeft--;
+            }
+        };
+        
+        timerInterval = setInterval(updateTimer, 1000);
+        updateTimer();
+        
+    
+        resendLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (!this.classList.contains('disabled')) {
+                this.classList.add('disabled');
+                this.textContent = 'Enviando...';
+                
+                fetch(window.location.href + '?resend=true', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        'action': 'resend_code'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        timeLeft = 80;
+                        this.textContent = 'Código reenviado';
+                        countdownElement.style.display = 'block';
+                        clearInterval(timerInterval);
+                        timerInterval = setInterval(updateTimer, 1000);
+                        
+                        showMessage('Código reenviado exitosamente. Revisa tu correo e inbox de spam.', 'success');
+                    } else {
+                        this.classList.remove('disabled');
+                        this.textContent = 'Reenviar código';
+                        showMessage(data.message || 'Error al reenviar el código. Inténtalo de nuevo.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.classList.remove('disabled');
+                    this.textContent = 'Reenviar código';
+                    showMessage('Error de conexión. Por favor intenta de nuevo.', 'error');
+                });
+            }
+        });
+        
+        function showMessage(message, type) {
+            let existingMessages = document.querySelector('.messages');
+            if (!existingMessages) {
+                const messagesDiv = document.createElement('div');
+                messagesDiv.className = 'messages';
+                document.querySelector('.info-section').after(messagesDiv);
+                existingMessages = messagesDiv;
+            }
+            
+            existingMessages.innerHTML = '';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            
+            existingMessages.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        document.getElementById('confirmForm').addEventListener('submit', function(e) {
+            const codigo = codigoInput.value.trim();
+            
+            if (codigo.length !== 6) {
+                e.preventDefault();
+                alert('Por favor ingresa un código de 6 dígitos');
+                codigoInput.focus();
+                return false;
+            }
+            
+            if (!/^\d{6}$/.test(codigo)) {
+                e.preventDefault();
+                alert('El código debe contener solo números');
+                codigoInput.focus();
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}

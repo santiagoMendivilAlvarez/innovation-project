@@ -1,0 +1,457 @@
+<!-- utils/chatbot.html - Componente Chatbot Reutilizable -->
+<style>
+    .chatbot-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .chatbot-toggle {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #1976d2, #1565c0);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(25, 118, 210, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .chatbot-toggle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(25, 118, 210, 0.4);
+    }
+
+    .chatbot-toggle .icon {
+        color: white;
+        font-size: 28px;
+        transition: transform 0.3s ease;
+    }
+
+    .chatbot-toggle.active .icon {
+        transform: rotate(180deg);
+    }
+
+    .chatbot-widget {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 350px;
+        height: 500px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        transform: translateY(20px) scale(0.8);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .chatbot-widget.show {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .chatbot-header {
+        background: linear-gradient(135deg, #1976d2, #1565c0);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .chatbot-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .chatbot-header p {
+        margin: 0.5rem 0 0 0;
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .chatbot-messages {
+        height: 320px;
+        overflow-y: auto;
+        padding: 1rem;
+        background: #f8f9fa;
+    }
+
+    .chatbot-message {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .chatbot-message.user {
+        flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .chatbot-message.bot .message-avatar {
+        background: linear-gradient(135deg, #1976d2, #1565c0);
+        color: white;
+    }
+
+    .chatbot-message.user .message-avatar {
+        background: linear-gradient(135deg, #4caf50, #2e7d32);
+        color: white;
+    }
+
+    .message-content {
+        max-width: 70%;
+        padding: 0.75rem 1rem;
+        border-radius: 18px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        white-space: pre-line;
+    }
+
+    .chatbot-message.bot .message-content {
+        background: white;
+        color: #333;
+        border-bottom-left-radius: 6px;
+    }
+
+    .chatbot-message.user .message-content {
+        background: #1976d2;
+        color: white;
+        border-bottom-right-radius: 6px;
+    }
+
+    .chatbot-input-area {
+        padding: 1rem;
+        border-top: 1px solid #e0e0e0;
+        background: white;
+        position: relative;
+    }
+
+    .chatbot-input {
+        width: 100%;
+        padding: 0.75rem 3rem 0.75rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 25px;
+        outline: none;
+        font-size: 0.9rem;
+        transition: border-color 0.3s;
+        resize: none;
+        font-family: inherit;
+    }
+
+    .chatbot-input:focus {
+        border-color: #1976d2;
+    }
+
+    .chatbot-send {
+        position: absolute;
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #1976d2;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chatbot-send:hover {
+        background: #1565c0;
+        transform: translateY(-50%) scale(1.05);
+    }
+
+    .chatbot-send:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: translateY(-50%);
+    }
+
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #999;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+
+    .chatbot-messages::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .chatbot-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chatbot-messages::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+    }
+
+    @media (max-width: 768px) {
+        .chatbot-container {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .chatbot-widget {
+            width: 300px;
+            height: 450px;
+        }
+
+        .chatbot-messages {
+            height: 280px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chatbot-widget {
+            width: calc(100vw - 40px);
+            right: -120px;
+        }
+    }
+</style>
+
+<div class="chatbot-container" id="bookieWookieChatbot">
+    <div class="chatbot-widget" id="chatbotWidget">
+        <div class="chatbot-header">
+            <h3>Asistente BookieWookie</h3>
+            <p>¿En qué puedo ayudarte hoy?</p>
+        </div>
+        
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="chatbot-message bot">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">¡Hola! Soy tu asistente virtual de BookieWookie. Puedo ayudarte a encontrar libros, comparar precios, o responder cualquier pregunta sobre nuestra plataforma.</div>
+            </div>
+        </div>
+        
+        <div class="chatbot-input-area">
+            <input type="text" 
+                   class="chatbot-input" 
+                   id="chatbotInput" 
+                   placeholder="Escribe tu mensaje aquí..."
+                   maxlength="500">
+            <button class="chatbot-send" 
+                    id="chatbotSend" 
+                    title="Enviar mensaje"
+                    aria-label="Enviar mensaje">
+                ➤
+            </button>
+        </div>
+    </div>
+    
+    <button class="chatbot-toggle" 
+            id="chatbotToggle" 
+            title="Abrir chat de ayuda"
+            aria-label="Abrir chat de ayuda">
+        <span class="icon">💬</span>
+    </button>
+</div>
+
+<script>
+(function() {
+    if (window.BookieWookieChatbot) {
+        return;
+    }
+
+    class BookieWookieChatbot {
+        constructor() {
+            this.isTyping = false;
+            this.initializeElements();
+            this.bindEvents();
+        }
+
+        initializeElements() {
+            this.toggle = document.getElementById('chatbotToggle');
+            this.widget = document.getElementById('chatbotWidget');
+            this.input = document.getElementById('chatbotInput');
+            this.send = document.getElementById('chatbotSend');
+            this.messages = document.getElementById('chatbotMessages');
+        }
+
+        bindEvents() {
+            this.toggle.addEventListener('click', () => this.toggleChat());
+            this.send.addEventListener('click', () => this.sendMessage());
+            
+            this.input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendMessage();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!this.widget.contains(e.target) && !this.toggle.contains(e.target)) {
+                    if (this.widget.classList.contains('show')) {
+                        this.toggleChat();
+                    }
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && this.widget.classList.contains('show')) {
+                    this.toggleChat();
+                }
+            });
+        }
+
+        toggleChat() {
+            const isOpen = this.widget.classList.contains('show');
+            
+            if (isOpen) {
+                this.widget.classList.remove('show');
+                this.toggle.classList.remove('active');
+            } else {
+                this.widget.classList.add('show');
+                this.toggle.classList.add('active');
+                this.input.focus();
+            }
+        }
+
+        addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chatbot-message ${isUser ? 'user' : 'bot'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            this.messages.appendChild(messageDiv);
+            this.messages.scrollTop = this.messages.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        showTypingIndicator() {
+            if (this.isTyping) return;
+            
+            this.isTyping = true;
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chatbot-message bot typing-indicator';
+            typingDiv.id = 'typing-indicator';
+            
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            
+            this.messages.appendChild(typingDiv);
+            this.messages.scrollTop = this.messages.scrollHeight;
+        }
+
+        hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+            this.isTyping = false;
+        }
+
+        getBotResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+            
+            if (message.includes('precio') || message.includes('costo') || message.includes('barato')) {
+                return 'Te ayudo a encontrar los mejores precios! 💰 Comparamos precios en más de 50 tiendas en tiempo real. ¿Qué libro estás buscando?';
+            } else if (message.includes('buscar') || message.includes('libro') || message.includes('encontrar')) {
+                return 'Perfecto! Puedes usar nuestra barra de búsqueda arriba para encontrar cualquier libro. También tengo acceso a nuestra base de datos de más de 45,000 títulos. ¿Qué libro necesitas?';
+            } else if (message.includes('ayuda') || message.includes('como') || message.includes('funciona')) {
+                return 'Te explico cómo funciona BookieWookie: 📚\n\n1. Busca el libro que quieres\n2. Comparamos precios en tiempo real\n3. Te mostramos las mejores ofertas\n4. Compras directo en la tienda que prefieras\n\n¿Hay algo específico que te gustaría saber?';
+            } else if (message.includes('gracias') || message.includes('genial') || message.includes('perfecto')) {
+                return '¡De nada! Me alegra poder ayudarte. Si necesitas buscar algún libro o tienes más preguntas, aquí estaré. 😊';
+            } else if (message.includes('hola') || message.includes('buenos') || message.includes('buenas')) {
+                return '¡Hola! 👋 Bienvenido a BookieWookie. Soy tu asistente virtual y estoy aquí para ayudarte a encontrar los mejores precios en libros. ¿Qué puedo hacer por ti hoy?';
+            } else if (message.includes('tiendas') || message.includes('donde') || message.includes('comprar')) {
+                return 'Comparamos precios en más de 50 tiendas online confiables como Amazon, Casa del Libro, Fnac, El Corte Inglés, y muchas más! 🛍️ Así te aseguramos encontrar el mejor precio disponible.';
+            } else {
+                return 'Interesante pregunta! Como asistente de BookieWookie, me especializo en ayudarte con:\n\n📖 Búsqueda de libros\n💰 Comparación de precios\n🛒 Encontrar las mejores ofertas\n❓ Resolver dudas sobre nuestra plataforma\n\n¿En qué puedo ayudarte específicamente?';
+            }
+        }
+
+        sendMessage() {
+            const message = this.input.value.trim();
+            if (!message) return;
+            
+            this.send.disabled = true;
+            this.input.disabled = true;
+            
+            this.addMessage(message, true);
+            this.input.value = '';
+            
+            this.showTypingIndicator();
+            
+            setTimeout(() => {
+                this.hideTypingIndicator();
+                const response = this.getBotResponse(message);
+                this.addMessage(response);
+                
+                this.send.disabled = false;
+                this.input.disabled = false;
+                this.input.focus();
+            }, 1000 + Math.random() * 1000);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            window.BookieWookieChatbot = new BookieWookieChatbot();
+        });
+    } else {
+        window.BookieWookieChatbot = new BookieWookieChatbot();
+    }
+})();
+</script>

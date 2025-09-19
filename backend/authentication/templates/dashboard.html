@@ -1,0 +1,504 @@
+{% extends 'utils/base_auth.html' %}
+
+{% block title %}Dashboard - BookieWookie{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        padding-bottom: 5rem; 
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #a8d0f0 0%, #7fb8e5 100%);
+        border-radius: 20px;
+        padding: 3rem;
+        margin-bottom: 3rem;
+        text-align: center;
+        color: #1976d2;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #1565c0;
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        color: #1976d2;
+        opacity: 0.9;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+
+    .search-section {
+        background: white;
+        border-radius: 15px;
+        border: 2px solid #1565c0;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .search-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .search-input-container {
+        position: relative;
+        width: 100%;
+    }
+
+    .search-input {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s;
+            width: 220px;
+        }
+    .search-input-text {
+        width: 100%;
+        padding: 1rem 3rem 1rem 1.5rem;
+        border-radius: 50px;
+        font-size: 1rem;
+        border: 2px solid #1565c0;
+        outline: none;
+        transition: all 0.3s;
+        box-sizing: border-box;
+        color: #000000;
+        font-weight: bold;
+    }
+
+    .search-input:focus {
+        border-color: #1976d2;
+        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+    }
+
+    .search-icon-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #1976d2;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .search-icon-btn:hover {
+        background: #1565c0;
+        transform: translateY(-50%) scale(1.05);
+    }
+
+    .search-icon-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .search-text-btn {
+        background: #1976d2;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        white-space: nowrap;
+        margin-top: 1rem;
+    }
+
+    .search-text-btn:hover {
+        background: #1565c0;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+        border-left: 4px solid #1976d2;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1976d2;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+
+    .stat-subtitle {
+        color: #999;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+
+    .features-section {
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+
+    .features-title {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .feature-description {
+        color: #666;
+        line-height: 1.6;
+        font-size: 0.9rem;
+    }
+
+    .books-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .view-all-btn {
+        background: #1976d2;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .view-all-btn:hover {
+        background: #1565c0;
+        transform: translateY(-1px);
+    }
+
+    .books-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .book-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+        cursor: pointer;
+    }
+
+    .book-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .book-cover {
+        width: 100%;
+        height: 240px;
+        background: linear-gradient(135deg, #4caf50, #2e7d32);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+        position: relative;
+    }
+
+    .book-info {
+        padding: 1rem;
+    }
+
+    .book-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #333;
+        font-size: 0.9rem;
+        line-height: 1.3;
+    }
+
+    .book-author {
+        color: #666;
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .book-category {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        display: inline-block;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+            padding-bottom: 5rem;
+        }
+
+        .hero-section {
+            padding: 2rem 1.5rem;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+        }
+
+        .search-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-text-btn {
+            width: 100%;
+        }
+
+        .stats-section {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .books-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
+        .book-cover {
+            height: 200px;
+        }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <div class="hero-section">
+        <h1 class="hero-title">Encuentra el mejor precio</h1>
+        <p class="hero-subtitle">
+            para cualquier libro que busques<br>
+            Comparamos precios de los mejores sitios en línea de venta de libros para que encuentres y 
+            compres libros al mejor precio disponible en el mercado.
+        </p>
+        
+        <div class="search-section">
+            <form class="search-form" action="#" method="GET">
+                <div class="search-input-container">
+                    <input type="text" class="search-input-text" placeholder="¿Qué libro estás buscando?" name="search" value="{{ request.GET.search|default:'' }}">
+                </div>
+                <button type="submit" class="search-text-btn">Buscar libro</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <div class="stat-card">
+            <span class="stat-number">45,000+</span>
+            <div class="stat-label">Libros disponibles</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">$850M</span>
+            <div class="stat-label">en ahorros</div>
+            <div class="stat-subtitle">generados</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">50+</span>
+            <div class="stat-label">tiendas</div>
+            <div class="stat-subtitle">comparadas</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">24/7</span>
+            <div class="stat-label">servicio</div>
+            <div class="stat-subtitle">actualizado</div>
+        </div>
+    </div>
+
+    <div class="features-section">
+        <h2 class="features-title">¿Por qué elegir BookieWookie?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📚</div>
+                <h3 class="feature-title">Comparación inteligente</h3>
+                <p class="feature-description">
+                    Analizamos precios de múltiples tiendas para encontrar las mejores ofertas disponibles en tiempo real.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3 class="feature-title">Búsqueda avanzada</h3>
+                <p class="feature-description">
+                    Encuentra exactamente lo que necesitas con filtros por categoría, precio, autor y disponibilidad.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3 class="feature-title">Alertas de precio</h3>
+                <p class="feature-description">
+                    Recibe notificaciones cuando el libro que quieres baje de precio o esté disponible con descuento.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="books-section">
+        <div class="section-header">
+            <h2 class="section-title">Los más buscados hoy</h2>
+            <a href="#" class="view-all-btn">Ver más</a>
+        </div>
+        
+        <div class="books-grid">
+            <div class="book-card">
+                <div class="book-cover" style="background: linear-gradient(135deg, #4caf50, #2e7d32);">📖</div>
+                <div class="book-info">
+                    <h4 class="book-title">Cien años de soledad</h4>
+                    <p class="book-author">Gabriel García Márquez</p>
+                    <span class="book-category">Literatura</span>
+                </div>
+            </div>
+            <div class="book-card">
+                <div class="book-cover" style="background: linear-gradient(135deg, #ff9800, #f57c00);">📖</div>
+                <div class="book-info">
+                    <h4 class="book-title">1984</h4>
+                    <p class="book-author">George Orwell</p>
+                    <span class="book-category">Ciencia Ficción</span>
+                </div>
+            </div>
+            <div class="book-card">
+                <div class="book-cover" style="background: linear-gradient(135deg, #3f51b5, #303f9f);">📖</div>
+                <div class="book-info">
+                    <h4 class="book-title">El Principito</h4>
+                    <p class="book-author">Antoine de Saint-Exupéry</p>
+                    <span class="book-category">Infantil</span>
+                </div>
+            </div>
+            <div class="book-card">
+                <div class="book-cover" style="background: linear-gradient(135deg, #e91e63, #c2185b);">📖</div>
+                <div class="book-info">
+                    <h4 class="book-title">La Sombra del Viento</h4>
+                    <p class="book-author">Carlos Ruiz Zafón</p>
+                    <span class="book-category">Misterio</span>
+                </div>
+            </div>
+            <div class="book-card">
+                <div class="book-cover" style="background: linear-gradient(135deg, #009688, #00796b);">📖</div>
+                <div class="book-info">
+                    <h4 class="book-title">Sapiens: De animales a dioses</h4>
+                    <p class="book-author">Yuval Noah Harari</p>
+                    <span class="book-category">Historia</span>
+                </div>
+            </div>
+            <div class="book-card">
+                <div class="book-cover" style="background: linear-gradient(135deg, #9c27b0, #7b1fa2);">📖</div>
+                <div class="book-info">
+                    <h4 class="book-title">El Alquimista</h4>
+                    <p class="book-author">Paulo Coelho</p>
+                    <span class="book-category">Filosofía</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'utils/chatbot.html' %}
+{% endblock %}
