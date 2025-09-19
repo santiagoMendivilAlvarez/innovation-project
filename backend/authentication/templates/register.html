@@ -1,0 +1,441 @@
+{% extends 'utils/base_guest.html' %}
+
+{% block title %}Registro - BookieWookie{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        width: 90%;          
+        max-width: 900px;
+        margin: 80px auto;
+        padding: 30px;
+    }
+
+    
+    .register-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid #e0e0e0;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #bbdefb, #90caf9);
+        color: #1976d2;
+        text-align: center;
+        padding: 30px;
+        font-size: 28px;
+        font-weight: 600;
+    }
+    
+    .card-body {
+        padding: 40px;
+    }
+    
+    .step-section {
+        background: linear-gradient(135deg, #b3e5fc, #81d4fa);
+        color: #0277bd;
+        padding: 15px 20px;
+        margin-bottom: 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 500;
+        font-size: 14px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+        background: #f8f9fa;
+        box-sizing: border-box;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #1976d2;
+        background: white;
+    }
+    
+    .form-control::placeholder {
+        color: #aaa;
+    }
+    
+    select.form-control {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+        padding-right: 40px;
+    }
+    
+    .field-errors {
+        margin-top: 5px;
+    }
+    
+    .field-errors small {
+        display: block;
+        color: #c62828;
+        font-size: 12px;
+        margin-top: 2px;
+    }
+    
+    .interests-section {
+        margin-top: 15px;
+    }
+    
+    .interests-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .interest-item {
+        display: flex;
+        align-items: center;
+        background: #f5f5f5;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 10px 12px;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .interest-item:hover {
+        background: #e3f2fd;
+        border-color: #1976d2;
+    }
+    
+    .interest-item input[type="checkbox"] {
+        margin-right: 8px;
+        transform: scale(1.2);
+    }
+    
+    .interest-item.selected {
+        background: #1976d2;
+        color: white;
+        border-color: #1976d2;
+    }
+    
+    .interest-item.selected input[type="checkbox"] {
+        accent-color: white;
+    }
+    
+    .form-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        font-size: 16px;
+        min-width: 120px;
+        box-sizing: border-box;
+    }
+    
+    .btn-primary {
+        background: #1976d2;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #1565c0;
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background: #f5f5f5;
+        color: #666;
+        border: 2px solid #e0e0e0;
+    }
+    
+    .btn-secondary:hover {
+        background: #e0e0e0;
+        border-color: #ccc;
+    }
+    
+    .messages {
+        margin-bottom: 20px;
+    }
+    
+    .message {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .message.success {
+        background: #e8f5e8;
+        color: #2e7d32;
+        border-left: 4px solid #4caf50;
+    }
+    
+    .message.error {
+        background: #ffebee;
+        color: #c62828;
+        border-left: 4px solid #f44336;
+    }
+    
+    .message.warning {
+        background: #fff8e1;
+        color: #f57c00;
+        border-left: 4px solid #ff9800;
+    }
+    
+    .login-link {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+    
+    .login-link p {
+        color: #666;
+        margin: 0;
+    }
+    
+    .login-link a {
+        color: #1976d2;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+    
+    .message.error {
+        margin-bottom: 10px;
+    }
+    @media (max-width: 768px) {
+        .container {
+            margin: 30px auto;
+            padding: 15px;
+        }
+        
+        .card-body {
+            padding: 30px 20px;
+        }
+        
+        .interests-grid {
+            grid-template-columns: repeat(1, 1fr);
+        }
+        
+        .form-buttons {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .form-buttons .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="register-card">
+        <div class="card-header">
+            Crea tu cuenta
+        </div>
+        
+        <div class="card-body">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div id="form-errors" class="messages"></div>
+            <form method="post" id="registerForm">
+                {% csrf_token %}
+
+                <!-- Paso 1: Datos personales -->
+                <div class="step-section">
+                    Paso 1: Datos personales
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.nombre_completo.id_for_label }}">{{ form.nombre_completo.label }}</label>
+                    {{ form.nombre_completo }}
+                    {% if form.nombre_completo.errors %}
+                        <div class="field-errors">
+                            {% for error in form.nombre_completo.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                </div>
+                    
+
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                    {{ form.password1 }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                    {{ form.password2 }}
+                </div>
+                
+                <!-- Paso 2: Perfil academico -->
+                <div class="step-section">
+                    Paso 2: Perfil académico
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.universidad.id_for_label }}">{{ form.universidad.label }}</label>
+                    {{ form.universidad }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.nivel_academico.id_for_label }}">{{ form.nivel_academico.label }}</label>
+                    {{ form.nivel_academico }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.carrera.id_for_label }}">{{ form.carrera.label }}</label>
+                    {{ form.carrera }}
+                </div>
+                
+                <!-- Paso 3: Intereses personales -->
+                <div class="step-section">
+                    Paso 3: Intereses personales (Opcional)
+                </div>
+                
+                <div class="form-group">
+                    <label>{{ form.intereses_usuario.label }}</label>
+                    <div class="interests-grid">
+                        {% for choice in form.intereses_usuario %}
+                            <div class="interest-item" onclick="toggleInterest(this)">
+                                {{ choice.tag }}
+                                <label style="margin: 0; cursor: pointer; flex: 1;">{{ choice.choice_label }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear cuenta</button>
+                </div>
+            </form>
+            
+            <div class="login-link">
+                <p>¿Ya tienes una cuenta? 
+                    <a href="{% url 'login' %}">Inicia sesión aquí</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('registerForm');
+        const errorContainer = document.getElementById('form-errors');
+
+        form.addEventListener('submit', function(e) {
+            errorContainer.innerHTML = ""; 
+            let errors = [];
+
+            const password1 = document.querySelector('input[name="password1"]').value;
+            const password2 = document.querySelector('input[name="password2"]').value;
+
+            if (password1 !== password2) {
+                errors.push("Las contraseñas no coinciden.");
+            }
+
+            if (password1.length < 8) {
+                errors.push("La contraseña debe tener al menos 8 caracteres.");
+            }
+
+            const requiredFields = [
+                'nombre_completo',
+                'email', 
+                'universidad',
+                'nivel_academico',
+                'carrera'
+            ];
+
+            for (let field of requiredFields) {
+                const input = document.querySelector(`[name="${field}"]`);
+                if (input && !input.value.trim()) {
+                    errors.push(`El campo "${input.previousElementSibling.textContent}" es obligatorio.`);
+                }
+            }
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                errors.forEach(msg => {
+                    const div = document.createElement("div");
+                    div.className = "message error";
+                    div.textContent = msg;
+                    errorContainer.appendChild(div);
+                });
+                return false;
+            }
+        });
+    });
+
+    function toggleInterest(element) {
+        const checkbox = element.querySelector('input[type="checkbox"]');
+        checkbox.checked = !checkbox.checked;
+        
+        if (checkbox.checked) {
+            element.classList.add('selected');
+        } else {
+            element.classList.remove('selected');
+        }
+        
+        const checkedBoxes = document.querySelectorAll('.interest-item input[type="checkbox"]:checked');
+        if (checkedBoxes.length > 10) {
+            checkbox.checked = false;
+            element.classList.remove('selected');
+            
+            const errorContainer = document.getElementById('form-errors');
+            const div = document.createElement("div");
+            div.className = "message error";
+            div.textContent = "Puedes seleccionar máximo 10 intereses.";
+            errorContainer.appendChild(div);
+        }
+    }
+</script>
+{% endblock %}

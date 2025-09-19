@@ -2,6 +2,7 @@
 Admin configuration for the Libros application.
 """
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from .models        import Categoria, Libro, FuenteLibro, Resena
 
 

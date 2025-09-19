@@ -2,7 +2,7 @@
 URL configuration for libros app.
 """
 from django.urls import path
-from libros      import views
+from . import views
 
 
 urlpatterns = [

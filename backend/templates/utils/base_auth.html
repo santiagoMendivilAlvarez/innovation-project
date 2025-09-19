@@ -1,0 +1,851 @@
+<!--Template for authenticated users-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BookieWookie{% endblock %}</title>
+    <meta name="csrf_token" content="{{ csrf_token }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: #1976d2;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1000;
+            min-height: 70px;
+            overflow: visible;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex: 1;
+        }
+
+        .navbar-center {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            justify-content: flex-end;
+            margin-right: 1rem;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::before {
+            content: "📚";
+            font-size: 28px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .navbar-search {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s;
+            width: 220px;
+        }
+
+
+        .search-input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .search-input:focus {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            width: 250px;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .search-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s;
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: white;
+            border-radius: 1px;
+        }
+
+        .user-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .user-menu:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #42a5f5, #1e88e5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+            line-height: 1.2;
+        }
+
+        .user-email {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .dropdown-arrow {
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+            margin-left: 0.5rem;
+        }
+
+        .user-menu.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+            z-index: 1001;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .user-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f0f0f0;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .dropdown-user-info h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .dropdown-user-info p {
+            color: #666;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .dropdown-user-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-number {
+            display: block;
+            font-weight: bold;
+            color: #1976d2;
+            font-size: 1.1rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .dropdown-menu {
+            padding: 0.5rem 0;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown-item-icon {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.5rem 0;
+        }
+
+        .dropdown-item.danger {
+            color: #dc3545;
+        }
+
+        .dropdown-item.danger:hover {
+            background-color: #fff5f5;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            line-height: 1;
+            width: 44px;
+            height: 44px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .mobile-menu-toggle:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-mobile {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: #1976d2;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            z-index: 999;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-100%);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 0;
+            display: none;
+        }
+
+        .nav-mobile.show {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+            padding: 1rem 2rem;
+        }
+
+        .nav-mobile .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .nav-mobile .nav-links a {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-mobile .nav-links a:last-child {
+            border-bottom: none;
+        }
+
+        .main-content {
+            flex: 1;
+        }
+
+        .footer {
+            background-color: #1976d2;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .messages {
+            margin: 1rem 0;
+        }
+
+        .message {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #b8daff;
+        }
+
+        .mobile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            z-index: 998;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mobile-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        body.menu-open {
+            overflow: hidden;
+        }
+
+        @media (max-width: 1100px) {
+            .navbar-center {
+                margin-right: 0.5rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .nav-links {
+                gap: 1rem;
+            }
+            
+            .nav-links a {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+            }
+
+            .navbar-left {
+                flex: none;
+            }
+
+            .navbar-center {
+                display: none;
+            }
+
+            .navbar-right {
+                flex: none;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: flex;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .user-dropdown {
+                right: 0;
+                left: auto;
+                min-width: 250px;
+                transform-origin: top right;
+            }
+
+            .nav-mobile {
+                display: block;
+            }
+
+            .nav-mobile .search-mobile {
+                padding: 1rem 0;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+                margin-bottom: 1rem;
+            }
+
+            .nav-mobile .search-input {
+                width: 100%;
+                background: rgba(255,255,255,0.1);
+                border: 1px solid rgba(255,255,255,0.2);
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="{% url 'dashboard' %}" class="logo">BookieWookie</a>
+            
+            <div class="nav-links">
+                <a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>
+                    Inicio
+                </a>
+                <a href="#recomendaciones" {% if 'recomendaciones' in request.path %}class="active"{% endif %}>
+                    Recomendaciones
+                </a>
+                <a href="#libros" {% if 'libros' in request.path %}class="active"{% endif %}>
+                    Explorar libros
+                </a>
+                <a href="#mi-biblioteca" {% if 'mi-biblioteca' in request.path %}class="active"{% endif %}>
+                    Mi Biblioteca
+                </a>
+            </div>
+        </div>
+
+        <div class="navbar-center">
+            <div class="navbar-search">
+                <form action="#" method="GET" class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar libros..." name="search" value="{{ request.GET.search|default:'' }}">
+                    <button type="submit" class="search-btn" title="Buscar libros" aria-label="Buscar libros">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="navbar-right">
+            <div class="user-menu" id="userMenuToggle" role="button" tabindex="0" aria-label="Menú de usuario" title="Abrir menú de usuario">
+                <div class="user-avatar">
+                    {% if user.nombre_completo %}
+                        {{ user.nombre_completo|first|upper }}
+                    {% else %}
+                        {{ user.email|first|upper }}
+                    {% endif %}
+                </div>
+                <div class="user-info">
+                    <div class="user-name">
+                        {% if user.nombre_completo %}
+                            {{ user.nombre_completo|truncatechars:20 }}
+                        {% else %}
+                            Usuario
+                        {% endif %}
+                    </div>
+                    <div class="user-email">{{ user.email|truncatechars:25 }}</div>
+                </div>
+                <span class="dropdown-arrow" aria-hidden="true">▼</span>
+            </div>
+
+            <div class="user-dropdown" id="userDropdown">
+                <div class="dropdown-header">
+                    <div class="dropdown-user-info">
+                        <h4>
+                            {% if user.nombre_completo %}
+                                {{ user.nombre_completo }}
+                            {% else %}
+                                Usuario
+                            {% endif %}
+                        </h4>
+                        <p>{{ user.email }}</p>
+                        <p style="margin-top: 0.25rem; font-size: 0.8rem;">
+                            {% if user.universidad %}
+                                {{ user.universidad }}
+                            {% else %}
+                                Universidad
+                            {% endif %}
+                            •
+                            {% if user.get_nivel_academico_display %}
+                                {{ user.get_nivel_academico_display }}
+                            {% else %}
+                                Nivel académico
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="dropdown-user-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">
+                                {% if user.libros_leidos %}
+                                    {{ user.libros_leidos }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </span>
+                            <div class="stat-label">Libros comprados</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">
+                                {% if user.favoritos %}
+                                    {{ user.favoritos }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </span>
+                            <div class="stat-label">Favoritos</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">
+                                {% if user.recomendaciones %}
+                                    {{ user.recomendaciones }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </span>
+                            <div class="stat-label">Recomendaciones</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dropdown-menu">
+                    <a href="#perfil" class="dropdown-item">
+                        <span class="dropdown-item-icon">👤</span>
+                        Mi Perfil
+                    </a>
+                    <a href="#configuracion" class="dropdown-item">
+                        <span class="dropdown-item-icon">⚙️</span>
+                        Configuración
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    
+                    <a href="{% url 'logout' %}" class="dropdown-item danger">
+                        <span class="dropdown-item-icon">🚪</span>
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+
+            <button class="mobile-menu-toggle" id="mobileToggle" aria-label="Abrir menú" title="Abrir menú de navegación" type="button">
+                <span id="toggleIcon" aria-hidden="true">☰</span>
+            </button>
+        </div>
+
+        <div class="nav-mobile" id="navMobile">
+            <div class="search-mobile">
+                <form action="#" method="GET" class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar libros..." name="search-mobile" value="{{ request.GET.search|default:'' }}">
+                    <button type="submit" class="search-btn" title="Buscar libros" aria-label="Buscar libros en versión móvil">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'home' %}">Inicio</a>
+                <a href="#recomendaciones">Recomendaciones</a>
+                <a href="#libros">Explorar libros</a>
+                <a href="#mi-biblioteca">Mi Biblioteca</a>
+                <a href="#perfil">Mi Perfil</a>
+                <a href="#configuracion">Configuración</a>
+                <a href="{% url 'logout' %}" style="color: #ffcdd2;">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <div class="main-content">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer class="footer">
+        
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const navMobile = document.getElementById("navMobile");
+            const toggleBtn = document.getElementById("mobileToggle");
+            const overlay = document.getElementById("mobileOverlay");
+            const toggleIcon = document.getElementById("toggleIcon");
+            const body = document.body;
+            const userMenuToggle = document.getElementById("userMenuToggle");
+            const userDropdown = document.getElementById("userDropdown");
+            
+            function toggleMobileMenu() {
+                const isOpen = navMobile.classList.contains("show");
+                
+                if (isOpen) {
+                    navMobile.classList.remove("show");
+                    overlay.classList.remove("show");
+                    body.classList.remove("menu-open");
+                    toggleIcon.textContent = "☰";
+                    toggleBtn.setAttribute("aria-label", "Abrir menú");
+                    toggleBtn.setAttribute("title", "Abrir menú de navegación");
+                    toggleBtn.setAttribute("title", "Abrir menú de navegación");
+                } else {
+                    navMobile.classList.add("show");
+                    overlay.classList.add("show");
+                    body.classList.add("menu-open");
+                    toggleIcon.textContent = "✕";
+                    toggleBtn.setAttribute("aria-label", "Cerrar menú");
+                    toggleBtn.setAttribute("title", "Cerrar menú de navegación");
+                    
+                    if (userDropdown && userDropdown.classList.contains("show")) {
+                        userMenuToggle.classList.remove("active");
+                        userDropdown.classList.remove("show");
+                    }
+                }
+            }
+            
+            function toggleUserMenu(e) {
+                if (e) {
+                    e.stopPropagation();
+                }
+                
+                const wasOpen = userDropdown.classList.contains("show");
+                
+                if (wasOpen) {
+                    userMenuToggle.classList.remove("active");
+                    userDropdown.classList.remove("show");
+                } else {
+                    userMenuToggle.classList.add("active");
+                    userDropdown.classList.add("show");
+                    
+                    if (navMobile && navMobile.classList.contains("show")) {
+                        toggleMobileMenu();
+                    }
+                }
+            }
+            
+            if (toggleBtn) {
+                toggleBtn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleMobileMenu();
+                });
+            }
+            
+            if (overlay) {
+                overlay.addEventListener("click", function(e) {
+                    if (e.target === overlay) {
+                        toggleMobileMenu();
+                    }
+                });
+            }
+            
+            if (userMenuToggle) {
+                userMenuToggle.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleUserMenu(e);
+                });
+
+                userMenuToggle.addEventListener("keydown", function(e) {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleUserMenu(e);
+                    }
+                });
+            }
+            
+            document.addEventListener('click', function(event) {
+                if (userDropdown && userMenuToggle && 
+                    !userMenuToggle.contains(event.target) && 
+                    !userDropdown.contains(event.target)) {
+                    userMenuToggle.classList.remove('active');
+                    userDropdown.classList.remove('show');
+                }
+            });
+            
+            window.addEventListener('scroll', function() {
+                if (userDropdown && userDropdown.classList.contains('show')) {
+                    userMenuToggle.classList.remove('active');
+                    userDropdown.classList.remove('show');
+                }
+            });
+            
+            const mobileLinks = navMobile.querySelectorAll("a");
+            mobileLinks.forEach(link => {
+                link.addEventListener("click", function() {
+                    setTimeout(function() {
+                        if (navMobile.classList.contains("show")) {
+                            toggleMobileMenu();
+                        }
+                    }, 150);
+                });
+            });
+            
+            window.addEventListener("resize", function() {
+                if (window.innerWidth > 768) {
+                    navMobile.classList.remove("show");
+                    overlay.classList.remove("show");
+                    body.classList.remove("menu-open");
+                    toggleIcon.textContent = "☰";
+                    toggleBtn.setAttribute("aria-label", "Abrir menú");
+                }
+            });
+            
+            document.addEventListener("keydown", function(e) {
+                if (e.key === "Escape") {
+                    if (navMobile.classList.contains("show")) {
+                        toggleMobileMenu();
+                    }
+                    if (userDropdown && userDropdown.classList.contains("show")) {
+                        userMenuToggle.classList.remove("active");
+                        userDropdown.classList.remove("show");
+                    }
+                }
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
