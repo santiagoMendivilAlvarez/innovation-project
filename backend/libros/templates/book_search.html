@@ -6,52 +6,182 @@
     <title>Buscar Libros</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; }
-        form { margin-bottom: 20px; }
-        input[type="text"] { width: 300px; padding: 8px; }
-        button { padding: 8px 12px; }
-        .book-card { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; display: flex; gap: 20px; }
-        .book-card img { max-width: 120px; }
+        .search-form { margin-bottom: 20px; background: #f5f5f5; padding: 20px; border-radius: 8px; }
+        .search-controls { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        input[type="text"] { width: 300px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .source-selector { margin-left: 10px; }
+        .source-selector select { padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        
+        .results-section { margin-bottom: 30px; }
+        .section-title { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 5px; margin-bottom: 15px; }
+        .google-section .section-title { border-color: #4285f4; }
+        .amazon-section .section-title { border-color: #ff9900; }
+        
+        .book-card { 
+            border: 1px solid #ddd; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            gap: 20px; 
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .google-book { border-left: 4px solid #4285f4; }
+        .amazon-book { border-left: 4px solid #ff9900; }
+        
+        .book-card img { max-width: 120px; height: auto; border-radius: 4px; }
         .book-details { max-width: 600px; }
-        .book-details h2 { margin: 0 0 10px 0; }
-        .book-details p { margin: 5px 0; }
+        .book-details h3 { margin: 0 0 10px 0; color: #333; }
+        .book-details p { margin: 5px 0; color: #666; }
+        .book-source { 
+            display: inline-block; 
+            padding: 3px 8px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            font-weight: bold; 
+            color: white; 
+            margin-bottom: 10px;
+        }
+        .source-google { background: #4285f4; }
+        .source-amazon { background: #ff9900; }
+        
+        .book-price { color: #b12704; font-weight: bold; font-size: 18px; }
+        .book-rating { color: #f90; }
+        .amazon-link { 
+            display: inline-block; 
+            margin-top: 10px; 
+            padding: 8px 15px; 
+            background: #ff9900; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 4px; 
+        }
+        .amazon-link:hover { background: #e68900; }
+        
+        .no-results { text-align: center; color: #666; margin: 40px 0; }
+        .error-message { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0; }
     </style>
 </head>
 <body>
 
-<h1>Buscar Libros</h1>
+<h1>🔍 Buscar Libros</h1>
 
-<form method="get">
-    <input type="text" name="q" placeholder="Escribe ISBN, título o autor..." value="{{ query }}">
-    <button type="submit">Buscar</button>
-</form>
-
-{% if book_details %}
-    {% if book_details.error %}
-        <p>{{ book_details.error }}</p>
-    {% else %}
-        <div class="book-card">
-            {% if book_details.thumbnail %}
-                <img src="{{ book_details.thumbnail }}" alt="{{ book_details.title }}">
-            {% endif %}
-            <div class="book-details">
-                <h2>{{ book_details.title }}</h2>
-                {% if book_details.authors %}
-                    <p><strong>Autores:</strong> {{ book_details.authors|join:", " }}</p>
-                {% endif %}
-                <p><strong>Editorial:</strong> {{ book_details.publisher }}</p>
-                <p><strong>Publicado:</strong> {{ book_details.publishedDate }}</p>
-                {% if book_details.pageCount != 'N/A' %}
-                    <p><strong>Páginas:</strong> {{ book_details.pageCount }}</p>
-                {% endif %}
-                {% if book_details.categories %}
-                    <p><strong>Categorías:</strong> {{ book_details.categories|join:", " }}</p>
-                {% endif %}
-                {% if book_details.description %}
-                    <p><strong>Descripción:</strong> {{ book_details.description }}</p>
-                {% endif %}
+<div class="search-form">
+    <form method="get">
+        <div class="search-controls">
+            <input type="text" name="q" placeholder="Escribe ISBN, título o autor..." value="{{ query }}" required>
+            <div class="source-selector">
+                <label for="source">Buscar en:</label>
+                <select name="source" id="source">
+                    <option value="all" {% if source == 'all' %}selected{% endif %}>Todas las fuentes</option>
+                    <option value="google" {% if source == 'google' %}selected{% endif %}>Solo Google Books</option>
+                    <option value="amazon" {% if source == 'amazon' %}selected{% endif %}>Solo Amazon</option>
+                </select>
             </div>
+            <button type="submit">Buscar Libros</button>
+        </div>
+    </form>
+</div>
+
+{% if query %}
+    <div class="search-info">
+        <p>Resultados de búsqueda para: <strong>"{{ query }}"</strong></p>
+    </div>
+
+    <!-- Google Books Results -->
+    {% if source == 'all' or source == 'google' %}
+        <div class="results-section google-section">
+            <h2 class="section-title">📚 Google Books</h2>
+            
+            {% if google_results %}
+                {% if google_results.error %}
+                    <div class="error-message">{{ google_results.error }}</div>
+                {% else %}
+                    <div class="book-card google-book">
+                        <span class="book-source source-google">GOOGLE BOOKS</span>
+                        {% if google_results.thumbnail %}
+                            <img src="{{ google_results.thumbnail }}" alt="{{ google_results.title }}">
+                        {% endif %}
+                        <div class="book-details">
+                            <h3>{{ google_results.title }}</h3>
+                            {% if google_results.authors %}
+                                <p><strong>Autores:</strong> {{ google_results.authors|join:", " }}</p>
+                            {% endif %}
+                            <p><strong>Editorial:</strong> {{ google_results.publisher }}</p>
+                            <p><strong>Publicado:</strong> {{ google_results.publishedDate }}</p>
+                            {% if google_results.pageCount != 'N/A' %}
+                                <p><strong>Páginas:</strong> {{ google_results.pageCount }}</p>
+                            {% endif %}
+                            {% if google_results.categories %}
+                                <p><strong>Categorías:</strong> {{ google_results.categories|join:", " }}</p>
+                            {% endif %}
+                            {% if google_results.description and google_results.description != 'N/A' %}
+                                <p><strong>Descripción:</strong> {{ google_results.description|truncatewords:50 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="no-results">No se encontraron resultados en Google Books</div>
+            {% endif %}
         </div>
     {% endif %}
+
+    <!-- Amazon Results -->
+    {% if source == 'all' or source == 'amazon' %}
+        <div class="results-section amazon-section">
+            <h2 class="section-title">🛒 Amazon Books</h2>
+            
+            {% if amazon_results %}
+                {% if amazon_results.error %}
+                    <div class="error-message">{{ amazon_results.error }}</div>
+                {% elif amazon_results.books %}
+                    {% for book in amazon_results.books %}
+                        <div class="book-card amazon-book">
+                            <span class="book-source source-amazon">AMAZON</span>
+                            {% if book.image_url %}
+                                <img src="{{ book.image_url }}" alt="{{ book.title }}">
+                            {% endif %}
+                            <div class="book-details">
+                                <h3>{{ book.title }}</h3>
+                                {% if book.authors %}
+                                    <p><strong>Autores:</strong> {{ book.authors|join:", " }}</p>
+                                {% endif %}
+                                {% if book.price and book.price != 'N/A' %}
+                                    <p class="book-price">💰 {{ book.price }}</p>
+                                {% endif %}
+                                {% if book.rating and book.rating != 'N/A' %}
+                                    <p class="book-rating">⭐ {{ book.rating }}/5</p>
+                                {% endif %}
+                                {% if book.publication_date and book.publication_date != 'N/A' %}
+                                    <p><strong>Publicado:</strong> {{ book.publication_date }}</p>
+                                {% endif %}
+                                {% if book.description and book.description != 'N/A' %}
+                                    <p><strong>Descripción:</strong> {{ book.description|truncatewords:30 }}</p>
+                                {% endif %}
+                                {% if book.amazon_url %}
+                                    <a href="{{ book.amazon_url }}" target="_blank" class="amazon-link">Ver en Amazon</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-results">No se encontraron libros en Amazon</div>
+                {% endif %}
+            {% else %}
+                <div class="no-results">No se encontraron resultados en Amazon</div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+{% else %}
+    <div class="no-results">
+        <h3>¡Encuentra tu próximo libro favorito!</h3>
+        <p>Busca en millones de libros de Google Books y Amazon.</p>
+        <p>Puedes buscar por título, autor, ISBN o palabras clave.</p>
+    </div>
 {% endif %}
 
 </body>

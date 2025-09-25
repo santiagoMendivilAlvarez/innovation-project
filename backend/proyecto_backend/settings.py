@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'libros',
     'authentication',
     'chatbot',
+    'profiles',
 ]
 
 MIDDLEWARE = [
@@ -166,6 +167,15 @@ MESSAGE_TAGS = {
 
 # API Keys
 GOOGLE_BOOKS_API_KEY = os.getenv('GOOGLE_BOOKS')
+
+# Amazon API Configuration
+# Option 1: Amazon Product Advertising API (official, requires approval)
+AMAZON_ACCESS_KEY_ID = os.getenv('AMAZON_ACCESS_KEY_ID', '')
+AMAZON_SECRET_ACCESS_KEY = os.getenv('AMAZON_SECRET_ACCESS_KEY', '')
+AMAZON_ASSOCIATE_TAG = os.getenv('AMAZON_ASSOCIATE_TAG', '')
+
+# Option 2: RapidAPI Amazon Data Scraper (third-party service)
+RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY', '')
 
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 CSRF_COOKIE_NAME = 'csrftoken'
