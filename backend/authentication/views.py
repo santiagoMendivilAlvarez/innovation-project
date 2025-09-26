@@ -30,6 +30,8 @@ def register_view(request):
     """
     Handle user registration with strict validation.
     """
+    print(f"CSRF Token from POST: {request.POST.get('csrfmiddlewaretoken')}")
+    print(f"CSRF Token from META: {request.META.get('CSRF_COOKIE')}")
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         csrf_token = request.POST.get('csrfmiddlewaretoken')
