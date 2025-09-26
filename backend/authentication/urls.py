@@ -1,7 +1,7 @@
 """
 URLs for authentication app.
 """
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -17,4 +17,5 @@ urlpatterns = [
     path('api/send-verification-code/', views.send_verification_code, name='send_verification_code'),
     path('api/user-data/', views.user_data_api, name='user_data_api'),
     path('api/update-intereses/', views.update_intereses_api, name='update_intereses_api'),
+    path('libros/', include("libros.urls")),
 ]

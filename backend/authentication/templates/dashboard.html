@@ -1,4 +1,4 @@
-{% extends 'utils/base_auth.html' %}
+{% extends 'libros.html' %}
 
 {% block title %}Dashboard - BookieWookie{% endblock %}
 
@@ -384,7 +384,7 @@
         </p>
         
         <div class="search-section">
-            <form class="search-form" action="#" method="GET">
+            <form class="search-form" action="{%url 'book_search' %}" method="GET">
                 <div class="search-input-container">
                     <input type="text" class="search-input-text" placeholder="¿Qué libro estás buscando?" name="search" value="{{ request.GET.search|default:'' }}">
                 </div>
