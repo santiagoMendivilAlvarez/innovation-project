@@ -282,3 +282,54 @@ class ConfirmEmailForm(forms.Form):
             raise forms.ValidationError("El código debe tener exactamente 6 dígitos.")
         
         return codigo
+
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Correo electrónico'
+        }),
+        error_messages={
+            'required': 'El correo es obligatorio.',
+            'invalid': 'Correo inválido.',
+        }
+    )
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if not CustomUser.objects.filter(email=email, is_active=True).exists():
+            raise forms.ValidationError('No existe cuenta con este correo.')
+        return email
+
+class ResetPasswordForm(forms.Form):
+    new_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nueva contraseña'
+        }),
+        min_length=8,
+        error_messages={
+            'required': 'La contraseña es obligatoria.',
+            'min_length': 'Mínimo 8 caracteres.',
+        }
+    )
+    
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirmar contraseña'
+        }),
+        error_messages={
+            'required': 'Confirma tu contraseña.',
+        }
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('new_password')
+        confirm = cleaned_data.get('confirm_password')
+        
+        if password and confirm and password != confirm:
+            raise forms.ValidationError('Las contraseñas no coinciden.')
+        
+        return cleaned_data
