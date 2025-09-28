@@ -17,55 +17,154 @@
         font-weight: bold;
     }
 
+    /* Formulario de búsqueda */
+    .search-form {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .search-form input[type="text"] {
+        width: 70%;
+        padding: 15px;
+        border: 2px solid #3498db;
+        border-radius: 25px;
+        font-size: 16px;
+        outline: none;
+        margin-right: 10px;
+    }
+
+    .search-form button {
+        padding: 15px 25px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .search-form button:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+    }
+
+    /* Estadísticas de búsqueda */
+    .search-stats {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    /* Secciones de resultados */
+    .results-section {
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        font-size: 1.8em;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #3498db;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .source-badge {
+        background: #3498db;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.7em;
+        font-weight: 500;
+    }
+
+    .amazon-badge {
+        background: #ff9900;
+    }
+
+    .google-badge {
+        background: #4285f4;
+    }
+
     /* Contenedor de libros con grid */
     .libros-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 25px;
         margin: 20px 0;
     }
 
     /* Tarjeta de cada libro */
     .libro-card {
-        background: rgba(145, 153, 152, 0.49);
-        border-radius: 20px;
+        background: white;
+        border-radius: 15px;
         padding: 25px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
-        border: 3px solid #e8e9ea;
+        border-left: 5px solid #3498db;
         position: relative;
         overflow: hidden;
     }
 
     .libro-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        border-color: #3498db;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .libro-card.amazon {
+        border-left-color: #ff9900;
+    }
+
+    .libro-card.google {
+        border-left-color: #4285f4;
+    }
+
+    /* Imagen del libro */
+    .book-image {
+        width: 80px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+        float: left;
+        margin-right: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
     }
 
     /* Título del libro */
     .libro-titulo {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: bold;
         color: #2c3e50;
         margin: 0 0 15px 0;
         line-height: 1.4;
-        border-bottom: 2px solid #3498db;
-        padding-bottom: 10px;
+        min-height: 50px;
     }
 
     /* Información del libro */
     .libro-info {
-        margin: 10px 0;
+        margin: 8px 0;
         font-size: 14px;
         color: #555;
         display: flex;
         align-items: flex-start;
+        clear: both;
     }
 
     .libro-info strong {
         color: #2c3e50;
-        min-width: 80px;
+        min-width: 90px;
         margin-right: 10px;
         font-weight: 600;
     }
@@ -74,32 +173,29 @@
     .libro-descripcion {
         margin: 15px 0;
         padding: 15px;
-        background: #d0e6f5ff;
+        background: #f8f9fa;
         border-radius: 8px;
         font-size: 14px;
         line-height: 1.5;
         color: #555;
         border-left: 4px solid #3498db;
+        clear: both;
     }
 
-    /* Estado de disponibilidad */
-    .estado-disponible {
-        color: #27ae60 !important;
+    /* Precio y rating */
+    .libro-precio {
+        font-size: 18px;
         font-weight: bold;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
+        color: #27ae60;
+        margin: 10px 0;
     }
 
-    .estado-no-disponible {
-        color: #e74c3c !important;
-        font-weight: bold;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
+    .libro-rating {
+        color: #f39c12;
+        margin: 5px 0;
     }
 
-    /* Acciones del libro */
+    /* Botones de acción */
     .libro-acciones {
         margin-top: 20px;
         padding-top: 15px;
@@ -107,6 +203,7 @@
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
+        clear: both;
     }
 
     .btn {
@@ -121,65 +218,24 @@
         gap: 5px;
     }
 
-    .btn-autor {
-        background: #2ecc71;
+    .btn-amazon {
+        background: #ff9900;
         color: white;
     }
 
-    .btn-autor:hover {
-        background: #27ae60;
+    .btn-amazon:hover {
+        background: #e68900;
         transform: translateY(-1px);
     }
 
-    /* Paginación */
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 40px 0;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .pagination a, .pagination .current {
-        padding: 10px 15px;
-        text-decoration: none;
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .pagination a {
-        background: white;
-        color: #3498db;
-        border: 1px solid #3498db;
-    }
-
-    .pagination a:hover {
+    .btn-info {
         background: #3498db;
         color: white;
     }
 
-    .pagination .current {
-        background: #3498db;
-        color: white;
-        border: 1px solid #3498db;
-    }
-
-    /* Información adicional */
-    .info-adicional {
-        margin: 30px 0;
-        padding: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
-        text-align: center;
-        color: white;
-    }
-
-    .info-adicional p {
-        margin: 0;
-        font-size: 16px;
-        opacity: 0.9;
+    .btn-info:hover {
+        background: #2980b9;
+        transform: translateY(-1px);
     }
 
     /* Sin resultados */
@@ -203,18 +259,24 @@
         font-size: 16px;
     }
 
-    .no-results a {
-        color: #3498db;
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .no-results a:hover {
-        text-decoration: underline;
+    /* Mensaje de error o información */
+    .info-message {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border-left: 4px solid #2196f3;
     }
 
     /* Responsivo */
     @media (max-width: 768px) {
+        .search-form input[type="text"] {
+            width: 100%;
+            margin-bottom: 15px;
+            margin-right: 0;
+        }
+        
         .libros-grid {
             grid-template-columns: 1fr;
             gap: 20px;
@@ -228,13 +290,10 @@
             font-size: 2em;
         }
         
-        .pagination {
-            gap: 5px;
-        }
-        
-        .pagination a, .pagination .current {
-            padding: 8px 12px;
-            font-size: 14px;
+        .book-image {
+            float: none;
+            display: block;
+            margin: 0 auto 15px auto;
         }
     }
 
@@ -253,103 +312,191 @@
         }
     }
 </style>
-<div class="search-form">
-    <form method="get" action="{% url 'book_search' %}">
-        <input type="text" 
-               name="q" 
-               value="{{ query }}" 
-               placeholder="Buscar por título, autor, categoría o descripción..."
-               class="search-input">
-        <button type="submit" class="search-btn"> Buscar</button>
-    </form>
-    
-    <div style="margin-top: 15px;">
-        <a href="{% url 'libros' %}" style="color: #3498db; text-decoration: none;">
-            ← Ver todos los libros
-        </a>
-    </div>
-</div>
-{% if query %}
-    <div class="search-stats">
-        {% if total_resultados %}
-            {% if total_resultados == 1 %}
-                Se encontró {{ total_resultados }} resultado para "{{ query }}"
-            {% else %}
-                Se encontraron {{ total_resultados }} resultados para "{{ query }}"
-            {% endif %}
-        {% else %}
-            No se encontraron resultados para "{{ query }}"
-        {% endif %}
-    </div>
-{% endif %}
 
-{% if libros %}
-    {% for libro in libros %}
-    <div class="libro-card">
-        <div class="libro-titulo">{{ libro.titulo }}</div>
-        <div class="libro-info">
-            <strong>Autor:</strong> {{ libro.autor }}
-        </div>
-        {% if libro.categoria %}
-        <div class="libro-info">
-            <strong>Categoría:</strong> {{ libro.categoria }}
-        </div>
-        {% endif %}
-        <div class="libro-info">
-            <strong>ISBN:</strong> {{ libro.editorial }}
-        </div>
-        <div class="libro-info">
-            <strong>Fecha de publicación:</strong> {{ libro.fecha_publicacion }}
-        </div>
-        <div class="libro-info">
-            <strong>Estado:</strong> 
-            {% if libro.disponible %}
-                <span style="color: green;">Disponible</span>
-            {% else %}
-                <span style="color: red;">No disponible</span>
-            {% endif %}
-        </div>
-        {% if libro.descripcion %}
-        <div class="libro-descripcion">{{ libro.descripcion|truncatewords:30 }}</div>
-        {% endif %}
+<div class="catalogo-container">
+    <h1 class="catalogo-title">🔍 Buscar Libros</h1>
+    
+    <!-- Formulario de búsqueda -->
+    <div class="search-form">
+        <form method="get" action="{% url 'book_search' %}">
+            <input type="text" 
+                   name="search" 
+                   value="{{ query }}" 
+                   placeholder="Buscar por título, autor o tema..."
+                   required>
+            <button type="submit">🔍 Buscar Libros</button>
+        </form>
+        
         <div style="margin-top: 15px;">
-            {% if libro.id %}
-                
-            {% endif %}
-            
-            {% if libro.autor %}
-                <a href="{% url 'book_search' %}?q={{ libro.autor|default:libro.autor }}" 
-                   style="background: #2ecc71; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px;">
-                    Más del autor
-                </a>
-            {% endif %}
+            <a href="{% url 'dashboard' %}" style="color: #3498db; text-decoration: none;">
+                ← Volver al Dashboard
+            </a>
         </div>
     </div>
-    {% endfor %}
-    
-    <!-- Paginación -->
-    {% if libros.has_other_pages %}
-    <div class="pagination">
-        {% if libros.has_previous %}
-            <a href="?q={{ query }}&page=1">&laquo; primera</a>
-            <a href="?q={{ query }}&page={{ libros.previous_page_number }}">anterior</a>
+
+    {% if query %}
+        <div class="search-stats">
+            Resultados de búsqueda para: <strong>"{{ query }}"</strong>
+        </div>
+
+        {% if error %}
+            <div class="info-message">
+                ⚠️ {{ error }}
+            </div>
         {% endif %}
-        
-        <span class="current">
-            Página {{ libros.number }} de {{ libros.paginator.num_pages }}
-        </span>
-        
-        {% if libros.has_next %}
-            <a href="?q={{ query }}&page={{ libros.next_page_number }}">siguiente</a>
-            <a href="?q={{ query }}&page={{ libros.paginator.num_pages }}">última &raquo;</a>
+
+        <!-- Resultados de Google Books -->
+        {% if google_results %}
+            <div class="results-section">
+                <h2 class="section-title">
+                    📚 Resultados de Google Books
+                    <span class="source-badge google-badge">Google</span>
+                </h2>
+                
+                {% if google_results.error %}
+                    <div class="info-message">
+                        {{ google_results.error }}
+                    </div>
+                {% elif google_results.title %}
+                    <div class="libros-grid">
+                        <div class="libro-card google">
+                            {% if google_results.thumbnail %}
+                                <img src="{{ google_results.thumbnail }}" alt="{{ google_results.title }}" class="book-image">
+                            {% endif %}
+                            
+                            <div class="libro-titulo">{{ google_results.title }}</div>
+                            
+                            {% if google_results.authors %}
+                                <div class="libro-info">
+                                    <strong>Autor(es):</strong> {{ google_results.authors|join:", " }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if google_results.publisher %}
+                                <div class="libro-info">
+                                    <strong>Editorial:</strong> {{ google_results.publisher }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if google_results.publishedDate %}
+                                <div class="libro-info">
+                                    <strong>Fecha:</strong> {{ google_results.publishedDate }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if google_results.pageCount %}
+                                <div class="libro-info">
+                                    <strong>Páginas:</strong> {{ google_results.pageCount }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if google_results.categories %}
+                                <div class="libro-info">
+                                    <strong>Categorías:</strong> {{ google_results.categories|join:", " }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if google_results.description %}
+                                <div class="libro-descripcion">
+                                    {{ google_results.description|truncatewords:40 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
         {% endif %}
-    </div>
+
+        <!-- Resultados de Amazon -->
+        {% if amazon_results %}
+            <div class="results-section">
+                <h2 class="section-title">
+                    🛒 Resultados de Amazon
+                    <span class="source-badge amazon-badge">Amazon</span>
+                </h2>
+                
+                {% if amazon_results.note %}
+                    <div class="info-message">
+                        ℹ️ {{ amazon_results.note }}
+                    </div>
+                {% endif %}
+                
+                {% if amazon_results.books %}
+                    <div class="libros-grid">
+                        {% for book in amazon_results.books %}
+                        <div class="libro-card amazon">
+                            {% if book.image_url %}
+                                <img src="{{ book.image_url }}" alt="{{ book.title }}" class="book-image">
+                            {% endif %}
+                            
+                            <div class="libro-titulo">{{ book.title }}</div>
+                            
+                            {% if book.authors %}
+                                <div class="libro-info">
+                                    <strong>Autor(es):</strong> {{ book.authors|join:", " }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if book.price %}
+                                <div class="libro-precio">💰 {{ book.price }}</div>
+                            {% endif %}
+                            
+                            {% if book.rating %}
+                                <div class="libro-rating">⭐ {{ book.rating }}/5</div>
+                            {% endif %}
+                            
+                            {% if book.publication_date %}
+                                <div class="libro-info">
+                                    <strong>Fecha:</strong> {{ book.publication_date }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if book.isbn %}
+                                <div class="libro-info">
+                                    <strong>ISBN:</strong> {{ book.isbn }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if book.description %}
+                                <div class="libro-descripcion">
+                                    {{ book.description|truncatewords:30 }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if book.amazon_url %}
+                                <div class="libro-acciones">
+                                    <a href="{{ book.amazon_url }}" target="_blank" class="btn btn-amazon">
+                                        Ver en Amazon
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% elif amazon_results.error %}
+                    <div class="info-message">
+                        {{ amazon_results.error }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Si no hay resultados -->
+        {% if not google_results and not amazon_results %}
+            <div class="no-results">
+                <h3>No se encontraron libros</h3>
+                <p>No pudimos encontrar libros relacionados con "{{ query }}".</p>
+                <p>Intenta con otros términos de búsqueda o verifica la ortografía.</p>
+            </div>
+        {% endif %}
+
+    {% else %}
+        <div class="no-results">
+            <h3>🔍 Buscar Libros</h3>
+            <p>Ingresa el título de un libro, nombre de autor o tema que te interese.</p>
+            <p>Buscaremos en Google Books y Amazon para darte los mejores resultados.</p>
+        </div>
     {% endif %}
-    
-{% elif query %}
-    <div class="no-results">
-        <h3>No se encontraron libros</h3>
-        <p>Intenta con otros términos de búsqueda o revisa la ortografía.</p>
-    </div>
-{% endif %}
-{% endblock %}
+</div>
+
+{% endblock content %}

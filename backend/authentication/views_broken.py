@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Views for the authentication app with strict validation and security.
 """
@@ -28,42 +27,66 @@ from .models import CustomUser
 logger = logging.getLogger(__name__)
 
 def register_view(request):
-    """
-    Handle user registration with optional email verification based on settings.
-    """
+                request.session['user_id_temp'] = user.id
+                request.session['codigo_timestamp'] = timezone.now().isoformat()
+                
+                subject = 'Verificación de cuenta - BookieWookie'
+                message = f"""
+Hola {user.nombre_completo},
+
+¡Bienvenido a BookieWookie! 
+
+Para completar tu registro y activar tu cuenta, necesitamos verificar tu dirección de email.
+
+Tu código de verificación es: {codigo_verificacion}
+
+Este código es válido por 10 minutos.
+
+Si no solicitaste esta cuenta, puedes ignorar este mensaje.
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
-        
+        csrf_token = request.POST.get('csrfmiddlewaretoken')
+        bypass_email = request.POST.get('bypass_email') == 'true'  # Check for bypass mode
         if form.is_valid():
+            if 'user_id_temp' in request.session and not bypass_email:
+                user_id = request.session.get('user_id_temp')
+                try:
+                    existing_user = CustomUser.objects.get(id=user_id)
+                    if not existing_user.email_verificado:
+                        messages.warning(request, 
+                            f'Ya hay un proceso de verificación activo para {existing_user.email}. '
+                            'Revisa tu correo o completa la verificación.')
+                        return redirect('confirm_email')
+                except CustomUser.DoesNotExist:
+                    del request.session['user_id_temp']
+                    if 'codigo_verificacion' in request.session:
+                        del request.session['codigo_verificacion']
             try:
                 user = form.save()
                 logger.info(f"Usuario registrado: {user.email}")
-
-                # Check if email verification should be skipped
-                skip_verification = getattr(settings, 'SKIP_EMAIL_VERIFICATION', False)
-                logger.info(f"SKIP_EMAIL_VERIFICATION setting: {skip_verification}")
-                
-                if skip_verification:
-                    # Skip email verification - activate account immediately
+                if bypass_email:
+                    # Skip email verification and activate account immediately
                     user.email_verificado = True
-                    user.is_active = True
                     user.save()
-                    
+                    # Clean up any existing session data
+                    if 'codigo_verificacion' in request.session:
+                        del request.session['codigo_verificacion']
+                    if 'user_id_temp' in request.session:
+                        del request.session['user_id_temp']
+                    if 'codigo_timestamp' in request.session:
+                        del request.session['codigo_timestamp']
                     # Log in the user automatically
                     login(request, user)
-                    
                     messages.success(request, 
-                        f'Registro exitoso! Bienvenido a BookieWookie, {user.nombre_completo}!')
-                    
-                    logger.info(f"Usuario registrado sin verificación de email: {user.email}")
+                        f'¡Registro exitoso! Tu cuenta ha sido activada directamente. '
+                        f'Bienvenido a BookieWookie, {user.nombre_completo}!')
+                    logger.info(f"Usuario registrado con bypass: {user.email}")
                     return redirect('dashboard')
                 else:
-                    # Normal email verification flow
+                    # Normal registration flow with email verification
                     codigo_verificacion = ''.join(random.choices(string.digits, k=6))
-                    
-                    # Store verification data in session
-                    request.session['user_id_temp'] = user.id
                     request.session['codigo_verificacion'] = codigo_verificacion
+                    request.session['user_id_temp'] = user.id
                     request.session['codigo_timestamp'] = timezone.now().isoformat()
                     
                     subject = 'Verificacion de cuenta - BookieWookie'
@@ -89,15 +112,16 @@ def register_view(request):
                         logger.info(f"Código de verificación enviado a: {user.email}")
                         
                         messages.success(request, 
-                            f'Registro exitoso! Hemos enviado un código de verificación a {user.email}. '
-                            'Por favor revisa tu correo y completa la verificación.')
-                        
+                            f'¡Registro exitoso! Hemos enviado un código de verificación a {user.email}. '
+                            'Revisa tu correo (incluyendo spam) para completar el proceso.')
                         return redirect('confirm_email')
                         
                     except Exception as e:
                         logger.error(f"Error enviando email a {user.email}: {str(e)}")
                         messages.error(request, 
-                            'No pudimos enviar el correo de verificación. Por favor intenta nuevamente.')
+                            'Hubo un problema enviando el email de verificación. '
+                            'Por favor, intenta registrarte nuevamente.')
+                        user.delete()  
                     
             except ValidationError as e:
                 for field, error_list in e.message_dict.items():
@@ -150,82 +174,87 @@ def login_view(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            
-            logger.info(f"Intento de login para: {email}")
+            remember_me = form.cleaned_data.get('remember_me', False)
             
             user = authenticate(request, username=email, password=password)
             
-            logger.info(f"Resultado de authenticate: {user}")
-            
             if user is not None:
-                logger.info(f"Usuario encontrado - is_active: {user.is_active}, email_verificado: {user.email_verificado}")
-                if user.email_verificado and user.is_active:
-                    login(request, user)
-                    logger.info(f"Usuario logueado exitosamente: {user.email}")
-                    messages.success(request, f'¡Bienvenido de vuelta, {user.nombre_completo}!')
-                    return redirect('dashboard')
-                elif not user.is_active:
+                if not user.is_active:
                     messages.error(request, 
-                        'Tu cuenta está desactivada. Por favor contacta al administrador.')
-                    logger.warning(f"Cuenta desactivada: {email}")
-                elif not user.email_verificado:
-                    messages.error(request, 
-                        'Tu cuenta no está verificada. Por favor, verifica tu correo electrónico antes de iniciar sesión.')
-                    logger.warning(f"Email no verificado: {email}")
+                        'Tu cuenta no está activada. Por favor verifica tu email primero.')
+                    logger.warning(f"Intento de login con cuenta inactiva: {email}")
+                    return render(request, 'login.html', {'form': form})
+                
+                if not user.email_verificado:
+                    messages.warning(request, 
+                        'Tu email no está verificado. Por favor verifica tu correo electrónico.')
+                    return render(request, 'login.html', {'form': form})
+                
+                if not user.is_profile_complete():
+                    messages.warning(request, 
+                        'Tu perfil no está completo. Por favor completa tu información.')
+                    login(request, user)  
+                    return redirect('profile')
+                
+                login(request, user)
+                logger.info(f"Login exitoso: {user.email}")
+                
+                if not remember_me:
+                    request.session.set_expiry(0)  
+                else:
+                    request.session.set_expiry(1209600)  # 2 weeks
+                
+                messages.success(request, f'¡Bienvenido de vuelta, {user.nombre_completo}!')
+                
+                next_page = request.GET.get('next')
+                if next_page:
+                    return redirect(next_page)
+                return redirect('dashboard')
+            
             else:
-                # Check if user exists to give more specific error
-                try:
-                    existing_user = CustomUser.objects.get(email=email)
-                    messages.error(request, 
-                        'Contraseña incorrecta. Por favor, verifica tu contraseña.')
-                    logger.warning(f"Contraseña incorrecta para: {email}")
-                except CustomUser.DoesNotExist:
-                    messages.error(request, 
-                        'No existe una cuenta con este correo electrónico.')
-                    logger.warning(f"Usuario no existe: {email}")
+                messages.error(request, 'Email o contraseña incorrectos.')
+                logger.warning(f"Intento de login fallido para: {email}")
+        
         else:
-            messages.error(request, 'Por favor, corrige los errores en el formulario.')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{error}')
     
     else:
         form = LoginForm()
-    
+
     return render(request, 'login.html', {'form': form})
 
 def logout_view(request):
     """
-    Handle user logout.
+    Handle user logout with logging.
     """
+    user_email = request.user.email if request.user.is_authenticated else 'Anónimo'
     logout(request)
-    messages.success(request, 'Has cerrado sesión exitosamente.')
+    logger.info(f"Logout: {user_email}")
     return redirect('home')
+
 
 @login_required
 def dashboard_view(request):
     """
-    Dashboard view for authenticated users.
+    User dashboard - simple version.
     """
-    return render(request, 'dashboard.html')
+    user = request.user
+    intereses_list = user.get_intereses_list()
+    
+    context = {
+        'user': user,
+        'intereses': intereses_list,
+        'intereses_display': user.get_intereses_display(),
+        'total_intereses': len(intereses_list),
+        'email_verified': user.email_verificado,
+    }
 
-@login_required
-def recomendaciones_view(request):
-    """
-    Recomendaciones page for authenticated users.
-    """
-    return render(request, 'recomendaciones.html')
+    return render(request, 'dashboard.html', context)
 
-@login_required
-def mi_biblioteca_view(request):
-    """
-    Mi Biblioteca page for authenticated users.
-    """
-    return render(request, 'mi_biblioteca.html')
 
-def explorar_libros_view(request):
-    """
-    Explorar libros page - accessible to all users.
-    """
-    return render(request, 'explorar_libros.html')
-
+@csrf_protect
 def confirm_email_view(request):
     """
     Handle email confirmation with expiration and attempt limits.
@@ -233,11 +262,11 @@ def confirm_email_view(request):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and request.GET.get('resend') == 'true':
         try:
             if 'user_id_temp' not in request.session or 'codigo_verificacion' not in request.session:
-                return JsonResponse({'success': False, 'message': 'Sesion invalida'})
+                return JsonResponse({'success': False, 'message': 'Sesión inválida'})
             
             resend_count = request.session.get('resend_count', 0)
             if resend_count >= 3:
-                return JsonResponse({'success': False, 'message': 'Has excedido el limite de reenvios'})
+                return JsonResponse({'success': False, 'message': 'Has excedido el límite de reenvíos'})
             
             nuevo_codigo = ''.join(random.choices(string.digits, k=6))
             request.session['codigo_verificacion'] = nuevo_codigo
@@ -248,7 +277,17 @@ def confirm_email_view(request):
             user = CustomUser.objects.get(id=user_id)
             
             subject = 'Nuevo código de verificación - BookieWookie'
-            message = f"Hola {user.nombre_completo},\n\nTu nuevo código de verificación es: {nuevo_codigo}\n\nEste código es válido por 10 minutos.\n\nSi no solicitaste este código, puedes ignorar este mensaje.\n\nEquipo de BookieWookie"
+            message = f"""
+Hola {user.nombre_completo},
+
+Tu nuevo código de verificación es: {nuevo_codigo}
+
+Este código es válido por 10 minutos.
+
+Si no solicitaste este código, puedes ignorar este mensaje.
+
+Equipo de BookieWookie
+            """.strip()
             
             send_mail(
                 subject,
@@ -296,6 +335,42 @@ def confirm_email_view(request):
         request.session['verification_attempts'] = 0
     
     if request.method == 'POST':
+        # Check for bypass verification
+        bypass_verification = request.POST.get('bypass_verification') == 'true'
+        
+        if bypass_verification:
+            # Skip email verification and activate account immediately
+            user_id = request.session.get('user_id_temp')
+            try:
+                user = CustomUser.objects.get(id=user_id)
+                user.email_verificado = True
+                user.is_active = True
+                user.save()
+                
+                # Clean up session data
+                del request.session['codigo_verificacion']
+                del request.session['user_id_temp'] 
+                del request.session['verification_attempts']
+                if 'codigo_timestamp' in request.session:
+                    del request.session['codigo_timestamp']
+                if 'resend_count' in request.session:
+                    del request.session['resend_count']
+                
+                # Log in the user automatically
+                login(request, user)
+                
+                messages.success(request, 
+                    f'¡Registro completado! Tu cuenta ha sido activada directamente. '
+                    f'Bienvenido a BookieWookie, {user.nombre_completo}!')
+                
+                logger.info(f"Email verificado con bypass: {user.email}")
+                return redirect('dashboard')
+                
+            except CustomUser.DoesNotExist:
+                messages.error(request, 'Usuario no encontrado. Por favor regístrate nuevamente.')
+                return redirect('register')
+        
+        # Normal verification flow
         request.session['verification_attempts'] += 1
         
         if request.session['verification_attempts'] > 3:
@@ -338,7 +413,7 @@ def confirm_email_view(request):
                 logger.info(f"Email verificado exitosamente: {user.email}")
                 
                 messages.success(request, 
-                    f'Email verificado correctamente! Bienvenido a BookieWookie, {user.nombre_completo}.')
+                    f'¡Email verificado correctamente! Bienvenido a BookieWookie, {user.nombre_completo}.')
                 return redirect('dashboard')
                 
             except CustomUser.DoesNotExist:
@@ -374,13 +449,6 @@ def confirm_email_view(request):
     
     return render(request, 'confirm_email.html', context)
 
-def home_view(request):
-    """
-    Home page with redirect logic.
-    """
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    return render(request, 'home.html')
 
 @require_http_methods(["POST"])
 def send_verification_code(request):
@@ -396,18 +464,19 @@ def send_verification_code(request):
             
             try:
                 send_mail(
-                    'Codigo de verificacion - BookieWookie',
-                    f'Tu codigo de verificacion es: {code}',
+                    'Código de verificación - BookieWookie',
+                    f'Tu código de verificación es: {code}',
                     settings.DEFAULT_FROM_EMAIL,
                     [email],
                     fail_silently=False,
                 )
-                return JsonResponse({'success': True, 'message': 'Codigo enviado'})
+                return JsonResponse({'success': True, 'message': 'Código enviado'})
             except Exception as e:
-                logger.error(f"Error enviando email a {email}: {str(e)}")
+                logger.error(f"Error enviando código a {email}: {str(e)}")
                 return JsonResponse({'success': False, 'message': 'Error enviando email'})
         
         return JsonResponse({'success': False, 'message': 'Email requerido'})
+
 
 @login_required
 @require_http_methods(["GET"])
@@ -415,25 +484,28 @@ def user_data_api(request):
     """
     API endpoint to get user data.
     """
+
+    
     user = request.user
     data = {
         'id': user.id,
         'email': user.email,
         'nombre_completo': user.nombre_completo,
-        'universidad_display': user.get_universidad_display(),
-        'universidad': user.universidad,
+        'universidad': user.get_universidad_display(),
+        'universidad_value': user.universidad,
         'carrera': user.carrera,
-        'nivel_academico_display': user.get_nivel_academico_display(),
-        'nivel_academico': user.nivel_academico,
+        'nivel_academico': user.get_nivel_academico_display(),
+        'nivel_academico_value': user.nivel_academico,
         'intereses': user.get_intereses_list(),
         'email_verificado': user.email_verificado,
         'suscripcion_activa': user.suscripcion_activa,
         'profile_complete': user.is_profile_complete(),
-        'profile_completion_percentage': user.get_completion_percentage(),
+        'profile_completion': user.get_profile_completion_percentage(),
     }
     return JsonResponse(data)
 
-@login_required
+
+@login_required 
 @require_http_methods(["POST"])
 def update_intereses_api(request):
     """
@@ -453,7 +525,7 @@ def update_intereses_api(request):
         user.set_intereses(intereses)
         user.save()
         
-        logger.info(f"Intereses actualizados para usuario: {user.email}")
+        logger.info(f"Intereses actualizados para: {user.email}")
         
         return JsonResponse({
             'success': True, 
@@ -467,3 +539,12 @@ def update_intereses_api(request):
             'success': False,
             'message': 'Error actualizando intereses'
         })
+
+
+def home_view(request):
+    """
+    Home page with redirect logic.
+    """
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'home.html')

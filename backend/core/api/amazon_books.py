@@ -57,7 +57,10 @@ class AmazonBooksAPI:
             }
             
             response = requests.get(search_url, params=params, headers=self.headers, timeout=10)
-            response.raise_for_status()
+            
+            # If we get blocked or error, return sample data
+            if response.status_code != 200:
+                return self._get_sample_books(query, max_results)
             
             # Parse the response (this is a simplified version)
             books = self._parse_search_results(response.text, max_results)
@@ -72,10 +75,12 @@ class AmazonBooksAPI:
             cache.set(cache_key, result, 3600)
             return result
             
-        except requests.RequestException as e:
-            return {'error': f'Error connecting to Amazon: {str(e)}', 'books': []}
-        except Exception as e:
-            return {'error': f'Error parsing Amazon response: {str(e)}', 'books': []}
+        except requests.RequestException:
+            # Return sample data if request fails
+            return self._get_sample_books(query, max_results)
+        except Exception:
+            # Return sample data for any other errors
+            return self._get_sample_books(query, max_results)
 
     def _parse_search_results(self, html_content: str, max_results: int) -> List[Dict]:
         """
@@ -110,6 +115,60 @@ class AmazonBooksAPI:
         ]
         
         return sample_books[:max_results]
+
+    def _get_sample_books(self, query: str, max_results: int) -> Dict:
+        """
+        Return sample book data when Amazon API is unavailable.
+        
+        Args:
+            query (str): Search query
+            max_results (int): Maximum number of results
+            
+        Returns:
+            Dict: Sample book data
+        """
+        sample_books = [
+            {
+                'title': f'Libro relacionado con "{query}" - Ejemplo 1',
+                'authors': ['Autor Demo 1'],
+                'price': '$15.99',
+                'rating': '4.2',
+                'image_url': 'https://via.placeholder.com/300x400/FF6B6B/FFFFFF?text=Libro+Demo+1',
+                'amazon_url': f'{self.base_url}/dp/demo001',
+                'description': f'Este es un libro de ejemplo relacionado con tu búsqueda de "{query}". Contiene información relevante y útil.',
+                'isbn': '9780123456789',
+                'publication_date': '2023-01-15'
+            },
+            {
+                'title': f'Libro relacionado con "{query}" - Ejemplo 2',
+                'authors': ['Autor Demo 2'],
+                'price': '$22.50',
+                'rating': '4.6',
+                'image_url': 'https://via.placeholder.com/300x400/4ECDC4/FFFFFF?text=Libro+Demo+2',
+                'amazon_url': f'{self.base_url}/dp/demo002',
+                'description': f'Otro libro de ejemplo que coincide con tu búsqueda "{query}". Perfecto para ampliar tus conocimientos.',
+                'isbn': '9780987654321',
+                'publication_date': '2023-03-20'
+            },
+            {
+                'title': f'Manual de "{query}" - Guía Completa',
+                'authors': ['Experto en el Tema', 'Coautor Especialista'],
+                'price': '$34.99',
+                'rating': '4.8',
+                'image_url': 'https://via.placeholder.com/300x400/45B7D1/FFFFFF?text=Manual+Demo',
+                'amazon_url': f'{self.base_url}/dp/demo003',
+                'description': f'Manual completo sobre "{query}" con ejemplos prácticos y ejercicios. Ideal para principiantes y expertos.',
+                'isbn': '9781234567890',
+                'publication_date': '2023-06-10'
+            }
+        ]
+        
+        return {
+            'books': sample_books[:max_results],
+            'total_results': len(sample_books[:max_results]),
+            'source': 'amazon_demo',
+            'note': 'Datos de demostración - Amazon API no disponible'
+        }
 
     def get_book_details(self, amazon_asin: str) -> Dict:
         """

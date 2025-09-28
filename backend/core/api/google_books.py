@@ -17,7 +17,7 @@ class GoogleBooksAPI:
         Initialize the API client with the base URL and API key.
         """
         self.url: str     = GOOGLE_BOOKS_API_URL
-        self.api_key: str = settings.GOOGLE_BOOKS_API_KEY
+        self.api_key: str = getattr(settings, 'GOOGLE_BOOKS_API_KEY', None) or ''
 
 
     def fetch_book_details(self: 'GoogleBooksAPI', query: str) -> dict:
@@ -31,8 +31,11 @@ class GoogleBooksAPI:
 
         params: dict = {
             'q': f'isbn:{query}',
-            'key': self.api_key
         }
+        # Only add API key if it exists
+        if self.api_key:
+            params['key'] = self.api_key
+            
         try:
             response = requests.get(self.url, params=params)
         except requests.RequestException as e:

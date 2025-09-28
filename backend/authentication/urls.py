@@ -11,6 +11,9 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('recomendaciones/', views.recomendaciones_view, name='recomendaciones'),
+    path('mi-biblioteca/', views.mi_biblioteca_view, name='mi_biblioteca'),
+    path('explorar-libros/', views.explorar_libros_view, name='explorar_libros'),
     
     path('confirm_email/', views.confirm_email_view, name='confirm_email'),
     

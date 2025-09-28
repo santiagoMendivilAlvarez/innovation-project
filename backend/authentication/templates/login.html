@@ -160,6 +160,56 @@
             width: 100%;
         }
     }
+    
+    /* Messages styles */
+    .messages-container {
+        margin-bottom: 20px;
+    }
+    
+    .alert {
+        padding: 12px 16px;
+        margin-bottom: 15px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    
+    .alert-success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+    
+    .alert-error, .alert-danger {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    
+    .alert-warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeaa7;
+    }
+    
+    .alert-info {
+        color: #0c5460;
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+    }
+    
+    .close {
+        background: none;
+        border: none;
+        font-size: 18px;
+        float: right;
+        cursor: pointer;
+        opacity: 0.5;
+    }
+    
+    .close:hover {
+        opacity: 1;
+    }
 </style>
 {% endblock %}
 
@@ -171,6 +221,19 @@
         </div>
         
         <div class="card-body">
+            {% if messages %}
+                <div class="messages-container mb-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
             <form method="post">
                 {% csrf_token %}
                 <div class="form-group">
@@ -190,7 +253,7 @@
                            id="password" 
                            name="password" 
                            class="form-control" 
-                           placeholder="Crea contraseña" 
+                           placeholder="Ingresa tu contraseña" 
                            required>
                 </div>
                 

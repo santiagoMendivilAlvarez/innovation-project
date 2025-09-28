@@ -405,7 +405,7 @@
                 <a href="{% url 'home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>
                     Inicio
                 </a>
-                <a href="#libros" {% if 'libros' in request.path %}class="active"{% endif %}>
+                <a href="{% url 'explorar_libros' %}" {% if 'explorar' in request.path %}class="active"{% endif %}>
                     Explorar libros
                 </a>
             </div>
@@ -413,7 +413,7 @@
 
         <div class="navbar-center">
             <div class="navbar-search">
-                <form action="#" method="GET" class="search-container">
+                <form action="{% url 'book_search' %}" method="GET" class="search-container">
                     <input type="text" class="search-input" placeholder="Buscar libros..." name="search" value="{{ request.GET.search|default:'' }}">
                     <button type="submit" class="search-btn" title="Buscar libros" aria-label="Buscar libros">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -437,8 +437,8 @@
 
         <div class="nav-mobile" id="navMobile">
             <div class="search-mobile">
-                <form action="#" method="GET" class="search-container">
-                    <input type="text" class="search-input" placeholder="Buscar libros..." name="search-mobile" value="{{ request.GET.search|default:'' }}">
+                <form action="{% url 'book_search' %}" method="GET" class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar libros..." name="search" value="{{ request.GET.search|default:'' }}">
                     <button type="submit" class="search-btn" title="Buscar libros" aria-label="Buscar libros en versión móvil">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                             <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
@@ -448,7 +448,7 @@
             </div>
             <div class="nav-links">
                 <a href="{% url 'home' %}">Inicio</a>
-                <a href="#libros">Explorar libros</a>
+                <a href="{% url 'explorar_libros' %}">Explorar libros</a>
             </div>
             <div class="auth-buttons">
                 <a href="{% url 'login' %}" class="btn-outline">Iniciar Sesión</a>
