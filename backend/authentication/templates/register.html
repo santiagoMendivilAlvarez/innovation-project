@@ -11,7 +11,6 @@
         padding: 30px;
     }
 
-    
     .register-card {
         background: white;
         border-radius: 15px;
@@ -181,6 +180,48 @@
     .btn-secondary:hover {
         background: #e0e0e0;
         border-color: #ccc;
+        text-decoration: none;
+    }
+    
+    .message-container {
+        margin-bottom: 20px;
+    }
+
+    .alert {
+        padding: 15px 20px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word;
+        max-width: 100%;
+        box-sizing: border-box;
+        text-align: center;
+        border-left: 4px solid;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border-color: #28a745;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-color: #dc3545;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border-color: #ffc107;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border-color: #17a2b8;
     }
     
     .btn-warning {
@@ -200,27 +241,31 @@
     }
     
     .message {
-        padding: 15px;
+        padding: 15px 20px;
         border-radius: 8px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.4;
+        border-left: 4px solid;
     }
     
     .message.success {
-        background: #e8f5e8;
-        color: #2e7d32;
-        border-left: 4px solid #4caf50;
+        background-color: #d4edda;
+        color: #155724;
+        border-color: #28a745;
     }
     
     .message.error {
-        background: #ffebee;
-        color: #c62828;
-        border-left: 4px solid #f44336;
+        background-color: #f8d7da;
+        color: #721c24;
+        border-color: #dc3545;
     }
     
     .message.warning {
-        background: #fff8e1;
-        color: #f57c00;
-        border-left: 4px solid #ff9800;
+        background-color: #fff3cd;
+        color: #856404;
+        border-color: #ffc107;
     }
     
     .login-link {
@@ -245,9 +290,6 @@
         text-decoration: underline;
     }
     
-    .message.error {
-        margin-bottom: 10px;
-    }
     @media (max-width: 768px) {
         .container {
             margin: 30px auto;
@@ -270,6 +312,11 @@
         .form-buttons .btn {
             width: 100%;
         }
+        
+        .alert, .message {
+            padding: 12px 16px;
+            font-size: 13px;
+        }
     }
 </style>
 {% endblock %}
@@ -283,13 +330,15 @@
         
         <div class="card-body">
             {% if messages %}
-                <div class="messages">
+                <div class="message-container">
                     {% for message in messages %}
-                        <div class="message {{ message.tags }}">{{ message }}</div>
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
                     {% endfor %}
                 </div>
             {% endif %}
+            
             <div id="form-errors" class="messages"></div>
+            
             <form method="post" id="registerForm">
                 {% csrf_token %}
 
@@ -314,17 +363,37 @@
                     <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
                     {{ form.email }}
                 </div>
+                {% if form.email.errors %}
+                    <div class="field-errors">
+                        {% for error in form.email.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
                     
-
                 <div class="form-group">
                     <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
                     {{ form.password1 }}
                 </div>
-                
+                {% if form.password1.errors %}
+                    <div class="field-errors">
+                        {% for error in form.password1.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
                 <div class="form-group">
                     <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
                     {{ form.password2 }}
                 </div>
+                {% if form.password2.errors %}
+                    <div class="field-errors">
+                        {% for error in form.password2.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 
                 <!-- Paso 2: Perfil academico -->
                 <div class="step-section">
