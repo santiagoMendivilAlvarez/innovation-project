@@ -383,14 +383,14 @@
             compres libros al mejor precio disponible en el mercado.
         </p>
         
-        <div class="search-section">
-            <form class="search-form" action="#" method="GET">
-                <div class="search-input-container">
-                    <input type="text" class="search-input-text" placeholder="¿Qué libro estás buscando?" name="search" value="{{ request.GET.search|default:'' }}">
-                </div>
-                <button type="submit" class="search-text-btn">Buscar libro</button>
-            </form>
-        </div>
+         <div class="search-section">
+             <form class="search-form" method="GET" action="{% url 'book_search' %}" id="dashboardSearchForm">
+                 <div class="search-input-container">
+                     <input type="text" class="search-input-text" placeholder="¿Qué libro estás buscando?" name="search" value="{{ request.GET.search|default:'' }}" required>
+                 </div>
+                 <button type="submit" class="search-text-btn">Buscar libro</button>
+             </form>
+         </div>
     </div>
 
     <div class="stats-section">
@@ -442,6 +442,7 @@
         </div>
     </div>
 
+    <!-- Show default content -->
     <div class="books-section">
         <div class="section-header">
             <h2 class="section-title">Los más buscados hoy</h2>
@@ -499,6 +500,21 @@
             </div>
         </div>
     </div>
-</div>
-{% include 'utils/chatbot.html' %}
-{% endblock %}
+ </div>
+ {% include 'utils/chatbot.html' %}
+ 
+ <script>
+ // Ensure the search form works correctly
+ document.addEventListener('DOMContentLoaded', function() {
+     const searchForm = document.getElementById('dashboardSearchForm');
+     if (searchForm) {
+         searchForm.addEventListener('submit', function(e) {
+             // Ensure it's a GET request
+             if (this.method.toLowerCase() !== 'get') {
+                 this.method = 'GET';
+             }
+         });
+     }
+ });
+ </script>
+ {% endblock %}

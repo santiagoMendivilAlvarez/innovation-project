@@ -81,6 +81,44 @@
         opacity: 0.9;
     }
 
+    .chatbot-fullscreen-btn {
+        position: absolute;
+        top: 1.5rem;
+        right: 1rem;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .chatbot-fullscreen-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.1);
+    }
+
+    .chatbot-widget.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        z-index: 9999;
+    }
+
+    .chatbot-widget.fullscreen .chatbot-messages {
+        height: calc(100vh - 180px);
+    }
+
     .chatbot-messages {
         height: 320px;
         overflow-y: auto;
@@ -264,6 +302,11 @@
         <div class="chatbot-header">
             <h3>Asistente BookieWookie</h3>
             <p>¿En qué puedo ayudarte hoy?</p>
+            <button class="chatbot-fullscreen-btn" id="fullscreenBtn" title="Pantalla completa">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                </svg>
+            </button>
         </div>
         
         <div class="chatbot-messages" id="chatbotMessages">
@@ -315,11 +358,17 @@
             this.input = document.getElementById('chatbotInput');
             this.send = document.getElementById('chatbotSend');
             this.messages = document.getElementById('chatbotMessages');
+            this.fullscreenBtn = document.getElementById('fullscreenBtn');
+            this.isFullscreen = false;
         }
 
         bindEvents() {
             this.toggle.addEventListener('click', () => this.toggleChat());
             this.send.addEventListener('click', () => this.sendMessage());
+            this.fullscreenBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleFullscreen();
+            });
             
             this.input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -330,17 +379,33 @@
 
             document.addEventListener('click', (e) => {
                 if (!this.widget.contains(e.target) && !this.toggle.contains(e.target)) {
-                    if (this.widget.classList.contains('show')) {
+                    if (this.widget.classList.contains('show') && !this.isFullscreen) {
                         this.toggleChat();
                     }
                 }
             });
 
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && this.widget.classList.contains('show')) {
+                if (e.key === 'Escape' && this.isFullscreen) {
+                    this.toggleFullscreen();
+                } else if (e.key === 'Escape' && this.widget.classList.contains('show')) {
                     this.toggleChat();
                 }
             });
+        }
+
+        toggleFullscreen() {
+            this.isFullscreen = !this.isFullscreen;
+            this.widget.classList.toggle('fullscreen');
+            
+            const svg = this.fullscreenBtn.querySelector('svg');
+            if (this.isFullscreen) {
+                svg.innerHTML = '<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>';
+                this.fullscreenBtn.title = 'Salir de pantalla completa';
+            } else {
+                svg.innerHTML = '<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>';
+                this.fullscreenBtn.title = 'Pantalla completa';
+            }
         }
 
         toggleChat() {

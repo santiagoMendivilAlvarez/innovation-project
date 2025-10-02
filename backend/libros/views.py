@@ -19,11 +19,3 @@ def view(request):
     return render(request, 'libros.html', context)
 
 
-def book_search(request):
-    query = request.GET.get('q', '')
-    book_details = {}
-
-    if query:
-        book_details = api.fetch_book_details(query)
-    
-    return render(request, 'book_search.html', {'book_details': book_details, 'query': query})
