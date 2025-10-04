@@ -1,0 +1,204 @@
+{% extends 'utils/base_auth.html' %}
+
+{% block title %}Recomendaciones - BookieWookie{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recomendaciones-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #1976d2;
+    }
+
+    .page-subtitle {
+        font-size: 1.1rem;
+        color: #666;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .recommendation-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+        border-left: 4px solid #1976d2;
+    }
+
+    .recommendation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+
+    .recommendation-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .recommendation-description {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .recommendation-books {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .book-tag {
+        background: linear-gradient(135deg, #1976d2, #1565c0);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .empty-state h3 {
+        color: #1976d2;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        color: #666;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #1976d2, #1565c0);
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(25, 118, 210, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .recomendaciones-container {
+            padding: 1rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+        }
+        
+        .recommendations-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="recomendaciones-container">
+    <div class="page-header">
+        <h1 class="page-title">📚 Recomendaciones Personalizadas</h1>
+        <p class="page-subtitle">
+            Descubre libros perfectos para ti basados en tus intereses y preferencias académicas
+        </p>
+    </div>
+
+    <div class="recommendations-grid">
+        <div class="recommendation-card">
+            <h3 class="recommendation-title">📖 Basado en tu Carrera</h3>
+            <p class="recommendation-description">
+                Libros especializados y textos académicos relacionados con tu área de estudio que te ayudarán a profundizar tus conocimientos.
+            </p>
+            <div class="recommendation-books">
+                <span class="book-tag">Fundamentos de Psicología</span>
+                <span class="book-tag">Neurociencia Cognitiva</span>
+                <span class="book-tag">Métodos de Investigación</span>
+            </div>
+        </div>
+
+        <div class="recommendation-card">
+            <h3 class="recommendation-title">⭐ Más Populares</h3>
+            <p class="recommendation-description">
+                Los libros más leídos y mejor valorados por estudiantes de tu universidad y carrera.
+            </p>
+            <div class="recommendation-books">
+                <span class="book-tag">El Principito</span>
+                <span class="book-tag">Sapiens</span>
+                <span class="book-tag">1984</span>
+            </div>
+        </div>
+
+        <div class="recommendation-card">
+            <h3 class="recommendation-title">🎯 Por tus Intereses</h3>
+            <p class="recommendation-description">
+                Recomendaciones personalizadas basadas en los temas e intereses que has seleccionado en tu perfil.
+            </p>
+            <div class="recommendation-books">
+                <span class="book-tag">Desarrollo Personal</span>
+                <span class="book-tag">Ciencia y Tecnología</span>
+                <span class="book-tag">Historia</span>
+            </div>
+        </div>
+
+        <div class="recommendation-card">
+            <h3 class="recommendation-title">🆕 Novedades</h3>
+            <p class="recommendation-description">
+                Los últimos lanzamientos y publicaciones recientes en las categorías que más te interesan.
+            </p>
+            <div class="recommendation-books">
+                <span class="book-tag">Publicaciones 2024</span>
+                <span class="book-tag">Bestsellers</span>
+                <span class="book-tag">Nuevas Ediciones</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="empty-state">
+        <h3>🔍 Mejora tus Recomendaciones</h3>
+        <p>Completa tu perfil y selecciona más intereses para obtener recomendaciones más precisas y personalizadas.</p>
+        <a href="{% url 'libros' %}" class="btn-primary">Ir al Dashboard</a>
+    </div>
+</div>
+{% endblock %}

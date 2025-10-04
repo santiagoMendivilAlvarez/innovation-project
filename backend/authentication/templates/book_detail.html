@@ -217,7 +217,7 @@
 <div class="detail-container">
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
-        <a href="{% url 'dashboard' %}">🏠 Inicio</a> / 
+        <a href="{% url 'libros' %}">🏠 Inicio</a> / 
         <a href="{% url 'book_search' %}{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}">🔍 Búsqueda</a> / 
         <span>{{ book.title }}</span>
     </nav>
@@ -260,7 +260,7 @@
             <a href="{% url 'book_search' %}{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}" class="btn-secondary">
                 ← Volver a búsqueda
             </a>
-            <a href="{% url 'dashboard' %}" class="btn-primary">
+            <a href="{% url 'libros' %}" class="btn-primary">
                 🏠 Ir al inicio
             </a>
         </div>

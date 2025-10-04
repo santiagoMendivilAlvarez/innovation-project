@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'libros',
     'authentication',
     'chatbot',
+    'profiles',
 ]
 
 MIDDLEWARE = [
@@ -152,6 +153,19 @@ MESSAGE_TAGS = {
 
 # API Keys
 GOOGLE_BOOKS_API_KEY = os.getenv('GOOGLE_BOOKS')
+
+# Email Verification Settings
+# Set to False to skip email verification during registration (for development/testing)
+SKIP_EMAIL_VERIFICATION = True  # Change to False to enable email verification
+
+# Amazon API Configuration
+# Option 1: Amazon Product Advertising API (official, requires approval)
+AMAZON_ACCESS_KEY_ID = os.getenv('AMAZON_ACCESS_KEY_ID', '')
+AMAZON_SECRET_ACCESS_KEY = os.getenv('AMAZON_SECRET_ACCESS_KEY', '')
+AMAZON_ASSOCIATE_TAG = os.getenv('AMAZON_ASSOCIATE_TAG', '')
+
+# Option 2: RapidAPI Amazon Data Scraper (third-party service)
+RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY', '')
 
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 CSRF_COOKIE_NAME = 'csrftoken'

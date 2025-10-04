@@ -16,13 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.conf import Settings
-from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('authentication.urls')),  # Cambiar esto
-    path('auth/', include("authentication.urls")),
+    path('', include('authentication.urls')),
     path('libros/', include("libros.urls")),
 ]
-

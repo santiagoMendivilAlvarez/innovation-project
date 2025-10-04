@@ -1,0 +1,139 @@
+{% extends 'utils/base_guest.html' %}
+{% load static %}
+
+{% block title %}Detalles de Libro - Amazon{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'book_search' %}">Búsqueda de Libros</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Detalles de Amazon</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-4">
+            {% if book_details.image_url %}
+                <img src="{{ book_details.image_url }}" alt="{{ book_details.title }}" class="img-fluid mb-3 shadow">
+            {% else %}
+                <div class="placeholder-image d-flex align-items-center justify-content-center bg-light shadow mb-3" style="height: 400px;">
+                    <i class="fas fa-book fa-3x text-muted"></i>
+                </div>
+            {% endif %}
+            
+            {% if book_details.amazon_url %}
+                <a href="{{ book_details.amazon_url }}" target="_blank" class="btn btn-warning btn-block mb-3">
+                    <i class="fab fa-amazon"></i> Ver en Amazon
+                </a>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-8">
+            {% if book_details.error %}
+                <div class="alert alert-danger">
+                    <h4>Error</h4>
+                    <p>{{ book_details.error }}</p>
+                </div>
+            {% else %}
+                <div class="book-info">
+                    <span class="badge badge-warning mb-2">AMAZON</span>
+                    <h1 class="mb-3">{{ book_details.title }}</h1>
+                    
+                    {% if book_details.authors %}
+                        <h5 class="text-muted mb-3">por {{ book_details.authors|join:", " }}</h5>
+                    {% endif %}
+                    
+                    <div class="row mb-4">
+                        {% if book_details.price and book_details.price != 'N/A' %}
+                            <div class="col-md-6">
+                                <h4 class="text-danger">
+                                    <i class="fas fa-dollar-sign"></i> {{ book_details.price }}
+                                </h4>
+                            </div>
+                        {% endif %}
+                        
+                        {% if book_details.rating and book_details.rating != 'N/A' %}
+                            <div class="col-md-6">
+                                <h5 class="text-warning">
+                                    <i class="fas fa-star"></i> {{ book_details.rating }}/5
+                                    {% if book_details.review_count %}
+                                        <small class="text-muted">({{ book_details.review_count }} reseñas)</small>
+                                    {% endif %}
+                                </h5>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="book-details-info">
+                        {% if book_details.publisher and book_details.publisher != 'N/A' %}
+                            <p><strong>Editorial:</strong> {{ book_details.publisher }}</p>
+                        {% endif %}
+                        
+                        {% if book_details.publication_date and book_details.publication_date != 'N/A' %}
+                            <p><strong>Fecha de publicación:</strong> {{ book_details.publication_date }}</p>
+                        {% endif %}
+                        
+                        {% if book_details.pages and book_details.pages != 'N/A' %}
+                            <p><strong>Páginas:</strong> {{ book_details.pages }}</p>
+                        {% endif %}
+                        
+                        {% if book_details.language and book_details.language != 'N/A' %}
+                            <p><strong>Idioma:</strong> {{ book_details.language }}</p>
+                        {% endif %}
+                        
+                        {% if book_details.dimensions and book_details.dimensions != 'N/A' %}
+                            <p><strong>Dimensiones:</strong> {{ book_details.dimensions }}</p>
+                        {% endif %}
+                        
+                        {% if book_details.isbn and book_details.isbn != 'N/A' %}
+                            <p><strong>ISBN:</strong> {{ book_details.isbn }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    {% if book_details.description and book_details.description != 'N/A' %}
+                        <div class="mt-4">
+                            <h4>Descripción</h4>
+                            <div class="description-text">
+                                {{ book_details.description|linebreaks }}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4 text-center">
+        <a href="{% url 'book_search' %}" class="btn btn-secondary">
+            <i class="fas fa-search"></i> Volver a Buscar
+        </a>
+    </div>
+</div>
+
+<style>
+    .placeholder-image {
+        border: 2px dashed #dee2e6;
+        border-radius: 0.25rem;
+    }
+    
+    .book-info h1 {
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .description-text {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 0.25rem;
+        border-left: 4px solid #ff9900;
+    }
+    
+    .badge-warning {
+        background-color: #ff9900;
+        color: white;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+</style>
+{% endblock %}

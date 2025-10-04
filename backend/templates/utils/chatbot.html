@@ -8,24 +8,46 @@
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
+    .chatbot-container.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 2000;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     .chatbot-toggle {
         width: 60px;
         height: 60px;
-        background: linear-gradient(135deg, #1976d2, #1565c0);
+        background: linear-gradient(135deg, #667eea, #764ba2);
         border: none;
         border-radius: 50%;
         cursor: pointer;
-        box-shadow: 0 4px 20px rgba(25, 118, 210, 0.3);
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3); }
+        50% { box-shadow: 0 4px 30px rgba(102, 126, 234, 0.6); }
+        100% { box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3); }
     }
 
     .chatbot-toggle:hover {
         transform: scale(1.05);
-        box-shadow: 0 6px 25px rgba(25, 118, 210, 0.4);
+        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
     }
 
     .chatbot-toggle .icon {
@@ -42,17 +64,44 @@
         position: absolute;
         bottom: 80px;
         right: 0;
-        width: 350px;
-        height: 500px;
+        width: 380px;
+        height: 600px;
         background: white;
         border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
         transform: translateY(20px) scale(0.8);
         opacity: 0;
         visibility: hidden;
-        transition: all 0.3s ease;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.1);
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .chatbot-container.fullscreen .chatbot-widget {
+        position: relative;
+        width: 90vw;
+        max-width: 800px;
+        height: 85vh;
+        max-height: 700px;
+        bottom: auto;
+        right: auto;
+        border-radius: 15px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        overflow: hidden;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .chatbot-container.fullscreen .chatbot-widget {
+        position: relative;
+        width: 90vw;
+        max-width: 800px;
+        height: 85vh;
+        max-height: 700px;
+        bottom: auto;
+        right: auto;
+        border-radius: 15px;
     }
 
     .chatbot-widget.show {
@@ -62,75 +111,101 @@
     }
 
     .chatbot-header {
-        background: linear-gradient(135deg, #1976d2, #1565c0);
+        background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
-        padding: 1.5rem;
-        text-align: center;
+        padding: 1.8rem;
+        text-align: left;
         position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .chatbot-header .header-content {
+        flex: 1;
     }
 
     .chatbot-header h3 {
         margin: 0;
-        font-size: 1.1rem;
+        font-size: 1.3rem;
         font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chatbot-header .bot-avatar {
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
     }
 
     .chatbot-header p {
         margin: 0.5rem 0 0 0;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         opacity: 0.9;
     }
 
-    .chatbot-fullscreen-btn {
-        position: absolute;
-        top: 1.5rem;
-        right: 1rem;
-        background: rgba(255,255,255,0.2);
+    .chatbot-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .control-btn {
+        background: rgba(255, 255, 255, 0.2);
         border: none;
         color: white;
-        width: 32px;
-        height: 32px;
         border-radius: 50%;
+        width: 35px;
+        height: 35px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
+        font-size: 16px;
     }
 
-    .chatbot-fullscreen-btn:hover {
-        background: rgba(255,255,255,0.3);
+    .control-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
         transform: scale(1.1);
     }
 
-    .chatbot-widget.fullscreen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100vw;
-        height: 100vh;
-        border-radius: 0;
-        z-index: 9999;
-    }
-
-    .chatbot-widget.fullscreen .chatbot-messages {
-        height: calc(100vh - 180px);
-    }
-
     .chatbot-messages {
-        height: 320px;
+        height: calc(100% - 140px);
+        min-height: 350px;
         overflow-y: auto;
-        padding: 1rem;
-        background: #f8f9fa;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f5f7ff, #eef2ff);
+        background-image: 
+            radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.05) 0%, transparent 50%);
     }
+    
 
     .chatbot-message {
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
         display: flex;
         align-items: flex-start;
-        gap: 0.75rem;
+        gap: 1rem;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .chatbot-message.user {
@@ -138,116 +213,173 @@
     }
 
     .message-avatar {
-        width: 32px;
-        height: 32px;
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
+        font-size: 18px;
         flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .chatbot-message.bot .message-avatar {
-        background: linear-gradient(135deg, #1976d2, #1565c0);
+        background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
     }
 
     .chatbot-message.user .message-avatar {
-        background: linear-gradient(135deg, #4caf50, #2e7d32);
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
         color: white;
     }
 
     .message-content {
-        max-width: 70%;
-        padding: 0.75rem 1rem;
-        border-radius: 18px;
-        font-size: 0.9rem;
-        line-height: 1.4;
+        max-width: 75%;
+        padding: 1rem 1.3rem;
+        border-radius: 20px;
+        font-size: 0.95rem;
+        line-height: 1.5;
         white-space: pre-line;
+        position: relative;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.8);
     }
 
     .chatbot-message.bot .message-content {
-        background: white;
+        background: linear-gradient(135deg, #ffffff, #f8f9ff);
         color: #333;
-        border-bottom-left-radius: 6px;
+        border-bottom-left-radius: 8px;
+        border: 1px solid rgba(102, 126, 234, 0.1);
     }
 
     .chatbot-message.user .message-content {
-        background: #1976d2;
+        background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
-        border-bottom-right-radius: 6px;
+        border-bottom-right-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Book recommendation cards */
+    .book-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        transition: transform 0.2s ease;
+    }
+
+    .book-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .book-card img {
+        width: 60px;
+        height: 80px;
+        border-radius: 6px;
+        object-fit: cover;
+        float: left;
+        margin-right: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .book-info h4 {
+        margin: 0 0 0.5rem 0;
+        color: #333;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .book-info p {
+        margin: 0.2rem 0;
+        color: #666;
+        font-size: 0.85rem;
     }
 
     .chatbot-input-area {
-        padding: 1rem;
-        border-top: 1px solid #e0e0e0;
+        padding: 1.2rem;
+        border-top: 1px solid rgba(102, 126, 234, 0.1);
         background: white;
         position: relative;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
     .chatbot-input {
-        width: 100%;
-        padding: 0.75rem 3rem 0.75rem 1rem;
-        border: 2px solid #e0e0e0;
+        flex: 1;
+        padding: 0.9rem 1.2rem;
+        border: 2px solid #e8ebf0;
         border-radius: 25px;
         outline: none;
-        font-size: 0.9rem;
-        transition: border-color 0.3s;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
         resize: none;
         font-family: inherit;
+        background: #f8f9ff;
     }
 
     .chatbot-input:focus {
-        border-color: #1976d2;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     .chatbot-send {
-        position: absolute;
-        right: 1.5rem;
-        top: 50%;
-        transform: translateY(-50%);
-        background: #1976d2;
+        background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
         border: none;
         border-radius: 50%;
-        width: 32px;
-        height: 32px;
+        width: 45px;
+        height: 45px;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 18px;
+        box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3);
     }
 
     .chatbot-send:hover {
-        background: #1565c0;
-        transform: translateY(-50%) scale(1.05);
+        transform: scale(1.05);
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
     }
 
     .chatbot-send:disabled {
         background: #ccc;
         cursor: not-allowed;
-        transform: translateY(-50%);
+        transform: none;
+        box-shadow: none;
     }
 
     .typing-indicator {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        margin-bottom: 1rem;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .typing-indicator .message-content {
+        padding: 1rem 1.3rem;
+        background: linear-gradient(135deg, #ffffff, #f8f9ff);
+        border: 1px solid rgba(102, 126, 234, 0.1);
     }
 
     .typing-dots {
         display: flex;
-        gap: 4px;
+        gap: 6px;
+        align-items: center;
     }
 
     .typing-dot {
-        width: 8px;
-        height: 8px;
-        background: #999;
+        width: 10px;
+        height: 10px;
+        background: #667eea;
         border-radius: 50%;
         animation: typing 1.4s infinite ease-in-out;
     }
@@ -256,12 +388,18 @@
     .typing-dot:nth-child(2) { animation-delay: -0.16s; }
 
     @keyframes typing {
-        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-        40% { transform: scale(1); opacity: 1; }
+        0%, 80%, 100% { 
+            transform: scale(0.8); 
+            opacity: 0.5; 
+        }
+        40% { 
+            transform: scale(1); 
+            opacity: 1; 
+        }
     }
 
     .chatbot-messages::-webkit-scrollbar {
-        width: 4px;
+        width: 6px;
     }
 
     .chatbot-messages::-webkit-scrollbar-track {
@@ -269,30 +407,37 @@
     }
 
     .chatbot-messages::-webkit-scrollbar-thumb {
-        background: #ccc;
-        border-radius: 4px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 6px;
     }
 
     @media (max-width: 768px) {
-        .chatbot-container {
+        .chatbot-container:not(.fullscreen) {
             bottom: 20px;
             right: 20px;
         }
 
-        .chatbot-widget {
-            width: 300px;
-            height: 450px;
+        .chatbot-container:not(.fullscreen) .chatbot-widget {
+            width: 350px;
+            height: 550px;
         }
 
-        .chatbot-messages {
-            height: 280px;
+        .chatbot-container.fullscreen .chatbot-widget {
+            width: 95vw;
+            height: 90vh;
         }
     }
 
     @media (max-width: 480px) {
-        .chatbot-widget {
+        .chatbot-container:not(.fullscreen) .chatbot-widget {
             width: calc(100vw - 40px);
             right: -120px;
+        }
+        
+        .chatbot-container.fullscreen .chatbot-widget {
+            width: 98vw;
+            height: 95vh;
+            border-radius: 10px;
         }
     }
 </style>
@@ -300,19 +445,33 @@
 <div class="chatbot-container" id="bookieWookieChatbot">
     <div class="chatbot-widget" id="chatbotWidget">
         <div class="chatbot-header">
-            <h3>Asistente BookieWookie</h3>
-            <p>¿En qué puedo ayudarte hoy?</p>
-            <button class="chatbot-fullscreen-btn" id="fullscreenBtn" title="Pantalla completa">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-                </svg>
-            </button>
+            <div class="bot-avatar">🤖</div>
+            <div class="header-content">
+                <h3>BookieWookie Assistant</h3>
+                <p>¿En qué puedo ayudarte hoy?</p>
+            </div>
+            <div class="chatbot-controls">
+                <button class="control-btn" id="expandBtn" title="Expandir chat">
+                    ⛶
+                </button>
+                <button class="control-btn" id="closeBtn" title="Cerrar chat">
+                    ✕
+                </button>
+            </div>
         </div>
         
         <div class="chatbot-messages" id="chatbotMessages">
             <div class="chatbot-message bot">
                 <div class="message-avatar">🤖</div>
-                <div class="message-content">¡Hola! Soy tu asistente virtual de BookieWookie. Puedo ayudarte a encontrar libros, comparar precios, o responder cualquier pregunta sobre nuestra plataforma.</div>
+                <div class="message-content">¡Hola! Soy tu asistente virtual de BookieWookie 📚
+                
+Puedo ayudarte a:
+• 🔍 Encontrar libros específicos
+• 💰 Comparar precios entre tiendas
+• 📖 Recomendar lecturas según tus gustos
+• ❓ Responder preguntas sobre nuestra plataforma
+
+¿Qué te gustaría hacer hoy?</div>
             </div>
         </div>
         
@@ -348,27 +507,27 @@
     class BookieWookieChatbot {
         constructor() {
             this.isTyping = false;
+            this.isFullscreen = false;
             this.initializeElements();
             this.bindEvents();
         }
 
         initializeElements() {
+            this.container = document.getElementById('bookieWookieChatbot');
             this.toggle = document.getElementById('chatbotToggle');
             this.widget = document.getElementById('chatbotWidget');
             this.input = document.getElementById('chatbotInput');
             this.send = document.getElementById('chatbotSend');
             this.messages = document.getElementById('chatbotMessages');
-            this.fullscreenBtn = document.getElementById('fullscreenBtn');
-            this.isFullscreen = false;
+            this.expandBtn = document.getElementById('expandBtn');
+            this.closeBtn = document.getElementById('closeBtn');
         }
 
         bindEvents() {
             this.toggle.addEventListener('click', () => this.toggleChat());
             this.send.addEventListener('click', () => this.sendMessage());
-            this.fullscreenBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleFullscreen();
-            });
+            this.expandBtn.addEventListener('click', () => this.toggleFullscreen());
+            this.closeBtn.addEventListener('click', () => this.closeChat());
             
             this.input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -378,18 +537,22 @@
             });
 
             document.addEventListener('click', (e) => {
-                if (!this.widget.contains(e.target) && !this.toggle.contains(e.target)) {
-                    if (this.widget.classList.contains('show') && !this.isFullscreen) {
-                        this.toggleChat();
+                if (!this.widget.contains(e.target) && 
+                    !this.toggle.contains(e.target) && 
+                    !this.isFullscreen) {
+                    if (this.widget.classList.contains('show')) {
+                        this.closeChat();
                     }
                 }
             });
 
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && this.isFullscreen) {
-                    this.toggleFullscreen();
-                } else if (e.key === 'Escape' && this.widget.classList.contains('show')) {
-                    this.toggleChat();
+                if (e.key === 'Escape') {
+                    if (this.isFullscreen) {
+                        this.toggleFullscreen();
+                    } else if (this.widget.classList.contains('show')) {
+                        this.closeChat();
+                    }
                 }
             });
         }
@@ -412,13 +575,45 @@
             const isOpen = this.widget.classList.contains('show');
             
             if (isOpen) {
-                this.widget.classList.remove('show');
-                this.toggle.classList.remove('active');
+                this.closeChat();
             } else {
-                this.widget.classList.add('show');
-                this.toggle.classList.add('active');
-                this.input.focus();
+                this.openChat();
             }
+        }
+
+        openChat() {
+            this.widget.classList.add('show');
+            this.toggle.classList.add('active');
+            setTimeout(() => this.input.focus(), 300);
+        }
+
+        closeChat() {
+            this.widget.classList.remove('show');
+            this.toggle.classList.remove('active');
+            if (this.isFullscreen) {
+                this.toggleFullscreen();
+            }
+        }
+
+        toggleFullscreen() {
+            this.isFullscreen = !this.isFullscreen;
+            
+            if (this.isFullscreen) {
+                this.container.classList.add('fullscreen');
+                this.expandBtn.innerHTML = '🗗';
+                this.expandBtn.title = 'Ventana normal';
+                document.body.style.overflow = 'hidden';
+            } else {
+                this.container.classList.remove('fullscreen');
+                this.expandBtn.innerHTML = '⛶';
+                this.expandBtn.title = 'Expandir chat';
+                document.body.style.overflow = '';
+            }
+            
+            setTimeout(() => {
+                this.messages.scrollTop = this.messages.scrollHeight;
+                this.input.focus();
+            }, 100);
         }
 
         addMessage(content, isUser = false) {
@@ -471,19 +666,114 @@
             const message = userMessage.toLowerCase();
             
             if (message.includes('precio') || message.includes('costo') || message.includes('barato')) {
-                return 'Te ayudo a encontrar los mejores precios! 💰 Comparamos precios en más de 50 tiendas en tiempo real. ¿Qué libro estás buscando?';
+                return `¡Perfecto! Te ayudo a encontrar los mejores precios 💰
+
+Comparamos precios en tiempo real de:
+• 📚 Amazon Books
+• 🏪 Google Books
+• 🛒 Y muchas librerías más
+
+¿Qué libro estás buscando? Puedes darme el título, autor o ISBN.`;
             } else if (message.includes('buscar') || message.includes('libro') || message.includes('encontrar')) {
-                return 'Perfecto! Puedes usar nuestra barra de búsqueda arriba para encontrar cualquier libro. También tengo acceso a nuestra base de datos de más de 45,000 títulos. ¿Qué libro necesitas?';
+                return `¡Excelente! Puedo ayudarte a encontrar libros 📖
+
+Usa nuestra búsqueda avanzada para encontrar:
+🔍 Por título, autor o ISBN
+📚 En Google Books y Amazon
+💰 Con comparación de precios
+⭐ Con reseñas y calificaciones
+
+¿Tienes algún libro específico en mente?`;
+            } else if (message.includes('recomendar') || message.includes('recomendación') || message.includes('qué leer')) {
+                return `¡Me encanta recomendar libros! 📚✨
+
+Para darte las mejores recomendaciones, cuéntame:
+🎭 ¿Qué género prefieres? (ficción, no ficción, misterio, romance, etc.)
+📚 ¿Algún autor favorito?
+⭐ ¿Libros que hayas disfrutado recientemente?
+🎯 ¿Para estudio, entretenimiento o trabajo?
+
+¡Mientras más me cuentes, mejor será mi recomendación!`;
             } else if (message.includes('ayuda') || message.includes('como') || message.includes('funciona')) {
-                return 'Te explico cómo funciona BookieWookie: 📚\n\n1. Busca el libro que quieres\n2. Comparamos precios en tiempo real\n3. Te mostramos las mejores ofertas\n4. Compras directo en la tienda que prefieras\n\n¿Hay algo específico que te gustaría saber?';
+                return `¡Te explico cómo funciona BookieWookie! �
+
+🔍 **Búsqueda Inteligente:**
+   Busca en múltiples fuentes simultáneamente
+
+💰 **Comparador de Precios:**
+   Ve el mejor precio disponible al instante
+
+📚 **Información Completa:**
+   Reseñas, sinopsis, datos del autor y más
+
+🛒 **Compra Directa:**
+   Enlaces directos a las tiendas
+
+¿Hay algo específico que te gustaría probar?`;
             } else if (message.includes('gracias') || message.includes('genial') || message.includes('perfecto')) {
-                return '¡De nada! Me alegra poder ayudarte. Si necesitas buscar algún libro o tienes más preguntas, aquí estaré. 😊';
-            } else if (message.includes('hola') || message.includes('buenos') || message.includes('buenas')) {
-                return '¡Hola! 👋 Bienvenido a BookieWookie. Soy tu asistente virtual y estoy aquí para ayudarte a encontrar los mejores precios en libros. ¿Qué puedo hacer por ti hoy?';
+                return `¡De nada! 😊 Me alegra poder ayudarte.
+
+¿Hay algo más que pueda hacer por ti?
+• 🔍 Buscar un libro específico
+• 💰 Comparar precios
+• 📖 Darte recomendaciones personalizadas
+• ❓ Resolver dudas sobre la plataforma
+
+¡Estoy aquí para ayudarte en lo que necesites! 🤖✨`;
+            } else if (message.includes('hola') || message.includes('buenos') || message.includes('buenas') || message.includes('hey')) {
+                return `¡Hola! 👋 ¡Qué gusto verte por aquí!
+
+Soy tu asistente personal de BookieWookie y estoy aquí para hacer tu búsqueda de libros súper fácil 📚
+
+**¿Qué puedo hacer por ti hoy?**
+🔍 Buscar libros específicos
+💰 Encontrar los mejores precios
+📖 Recomendar lecturas increíbles
+🛟 Ayudarte con cualquier duda
+
+¡Solo dime qué necesitas y empezamos! ✨`;
             } else if (message.includes('tiendas') || message.includes('donde') || message.includes('comprar')) {
-                return 'Comparamos precios en más de 50 tiendas online confiables como Amazon, Casa del Libro, Fnac, El Corte Inglés, y muchas más! 🛍️ Así te aseguramos encontrar el mejor precio disponible.';
+                return `¡Genial pregunta! 🛍️
+
+**Comparamos precios en:**
+📖 Google Books (millones de títulos)
+🛒 Amazon (gran selección y envíos)
+🏪 Librerías especializadas
+📚 Tiendas digitales y físicas
+
+**Ventajas de usar BookieWookie:**
+✅ Comparación instantánea de precios
+✅ Información completa de cada libro
+✅ Enlaces directos para comprar
+✅ Reseñas y calificaciones reales
+
+¿Buscas algún libro en particular?`;
+            } else if (message.includes('autor') || message.includes('escritor')) {
+                return `¡Me encanta hablar de autores! ✍️📚
+
+¿Te interesa:
+🔍 **Buscar libros de un autor específico?**
+👨‍💼 **Conocer más sobre algún escritor?**
+� **Descubrir autores nuevos según tus gustos?**
+⭐ **Ver los más populares del momento?**
+
+Solo dime el nombre del autor o qué tipo de escritor te interesa y te ayudo a encontrar sus mejores obras con los mejores precios 💰`;
             } else {
-                return 'Interesante pregunta! Como asistente de BookieWookie, me especializo en ayudarte con:\n\n📖 Búsqueda de libros\n💰 Comparación de precios\n🛒 Encontrar las mejores ofertas\n❓ Resolver dudas sobre nuestra plataforma\n\n¿En qué puedo ayudarte específicamente?';
+                return `¡Interesante! 🤔 Como tu asistente de BookieWookie, me especializo en:
+
+� **Búsqueda de libros:**
+   Por título, autor, ISBN o tema
+
+💰 **Comparación de precios:**
+   Para que siempre pagues menos
+
+🎯 **Recomendaciones personalizadas:**
+   Según tus gustos e intereses  
+
+❓ **Soporte técnico:**
+   Para usar mejor la plataforma
+
+¿En cuál de estas áreas puedo ayudarte específicamente? ¡O pregúntame algo más sobre libros! 📖✨`;
             }
         }
 

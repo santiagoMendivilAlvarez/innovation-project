@@ -2,8 +2,8 @@
 Module for interacting with the Google Books API.
 """
 import requests
-from django.conf       import settings
-from django.http       import HttpResponse
+from django.conf import settings
+from django.http import HttpResponse
 from django.core.cache import cache
 GOOGLE_BOOKS_API_URL = "https://www.googleapis.com/books/v1/volumes"
 
@@ -12,13 +12,14 @@ class GoogleBooksAPI:
     """
     API client for Google Books.
     """
+
     def __init__(self: 'GoogleBooksAPI') -> None:
         """
         Initialize the API client with the base URL and API key.
         """
-        self.url: str     = GOOGLE_BOOKS_API_URL
-        self.api_key: str = settings.GOOGLE_BOOKS_API_KEY
-
+        self.url: str = GOOGLE_BOOKS_API_URL
+        self.api_key: str = getattr(
+            settings, 'GOOGLE_BOOKS_API_KEY', None) or ''
 
     def fetch_book_details(self: 'GoogleBooksAPI', query: str) -> dict:
         """
@@ -42,7 +43,10 @@ class GoogleBooksAPI:
             'maxResults': 20,
             'orderBy': 'relevance'
         }
-        
+        # Only add API key if it exists
+        if self.api_key:
+            params['key'] = self.api_key
+
         try:
             response = requests.get(self.url, params=params, timeout=5)
             response.raise_for_status()
@@ -59,14 +63,13 @@ class GoogleBooksAPI:
             data = self.__get_subject_search(query, params)
 
         if not data.get('items'):
-            result = {'error': 'No se encontraron libros con la búsqueda proporcionada.'}
+            result = {
+                'error': 'No se encontraron libros con la búsqueda proporcionada.'}
         else:
             result = self.__return_multiple_results(data)
 
         cache.set(cache_key, result, 86400)
         return result
-
-
 
     def __get_general_search(self: 'GoogleBooksAPI', query: str, params: dict) -> dict:
         """
@@ -82,7 +85,7 @@ class GoogleBooksAPI:
         params['q'] = query
         params['maxResults'] = 20
         response = requests.get(self.url, params=params)
-        data     = response.json()
+        data = response.json()
         return data
 
     def __get_subject_search(self: 'GoogleBooksAPI', query: str, params: dict) -> dict:
@@ -101,15 +104,14 @@ class GoogleBooksAPI:
         params['maxResults'] = 20
         response = requests.get(self.url, params=params)
         data = response.json()
-        
+
         # If still no results, try intitle search
         if not data.get('items'):
             params['q'] = f'intitle:{query}'
             response = requests.get(self.url, params=params)
             data = response.json()
-        
-        return data
 
+        return data
 
     def __return_results(self: 'GoogleBooksAPI', data: dict) -> dict:
         """
@@ -117,20 +119,20 @@ class GoogleBooksAPI:
 
         Args:
             data (dict): The JSON response from the Google Books API.
-        
+
         Returns:
             dict: A dictionary containing relevant book details.
         """
         book_info = data['items'][0]['volumeInfo']
         return {
-            'title'         : book_info.get('title', 'N/A'),
-            'authors'       : book_info.get('authors', []),
-            'publisher'     : book_info.get('publisher', 'N/A'),
-            'publishedDate' : book_info.get('publishedDate', 'N/A'),
-            'description'   : book_info.get('description', 'N/A'),
-            'pageCount'     : book_info.get('pageCount', 'N/A'),
-            'categories'    : book_info.get('categories', []),
-            'thumbnail'     : book_info.get('imageLinks', {}).get('thumbnail', ''),
+            'title': book_info.get('title', 'N/A'),
+            'authors': book_info.get('authors', []),
+            'publisher': book_info.get('publisher', 'N/A'),
+            'publishedDate': book_info.get('publishedDate', 'N/A'),
+            'description': book_info.get('description', 'N/A'),
+            'pageCount': book_info.get('pageCount', 'N/A'),
+            'categories': book_info.get('categories', []),
+            'thumbnail': book_info.get('imageLinks', {}).get('thumbnail', ''),
         }
 
     def __return_multiple_results(self: 'GoogleBooksAPI', data: dict) -> list:
@@ -139,7 +141,7 @@ class GoogleBooksAPI:
 
         Args:
             data (dict): The JSON response from the Google Books API.
-        
+
         Returns:
             list: A list of dictionaries containing book details.
         """
@@ -147,14 +149,14 @@ class GoogleBooksAPI:
         for item in data.get('items', [])[:10]:  # Limit to 10 results
             book_info = item.get('volumeInfo', {})
             books.append({
-                'title'         : book_info.get('title', 'N/A'),
-                'authors'       : book_info.get('authors', []),
-                'publisher'     : book_info.get('publisher', 'N/A'),
-                'publishedDate' : book_info.get('publishedDate', 'N/A'),
-                'description'   : book_info.get('description', 'N/A')[:300] + '...' if book_info.get('description') and len(book_info.get('description', '')) > 300 else book_info.get('description', 'N/A'),
-                'pageCount'     : book_info.get('pageCount', 'N/A'),
-                'categories'    : book_info.get('categories', []),
-                'thumbnail'     : book_info.get('imageLinks', {}).get('thumbnail', '').replace('http://', 'https://'),
-                'previewLink'   : book_info.get('previewLink', '#'),
+                'title': book_info.get('title', 'N/A'),
+                'authors': book_info.get('authors', []),
+                'publisher': book_info.get('publisher', 'N/A'),
+                'publishedDate': book_info.get('publishedDate', 'N/A'),
+                'description': book_info.get('description', 'N/A')[:300] + '...' if book_info.get('description') and len(book_info.get('description', '')) > 300 else book_info.get('description', 'N/A'),
+                'pageCount': book_info.get('pageCount', 'N/A'),
+                'categories': book_info.get('categories', []),
+                'thumbnail': book_info.get('imageLinks', {}).get('thumbnail', '').replace('http://', 'https://'),
+                'previewLink': book_info.get('previewLink', '#'),
             })
         return books
