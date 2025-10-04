@@ -371,7 +371,7 @@
                 <a href="{% url 'home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>
                     Inicio
                 </a>
-                <a href="{% url 'explorar_libros' %}" {% if 'explorar' in request.path %}class="active"{% endif %}>
+                <a href="{% url 'libros' %}" {% if 'explorar' in request.path %}class="active"{% endif %}>
                     Explorar libros
                 </a>
             </div>
@@ -414,7 +414,7 @@
             </div>
             <div class="nav-links">
                 <a href="{% url 'home' %}">Inicio</a>
-                <a href="{% url 'explorar_libros' %}">Explorar libros</a>
+                <a href="{% url 'libros' %}">Explorar libros</a>
             </div>
             <div class="auth-buttons">
                 <a href="{% url 'login' %}" class="btn-outline">Iniciar Sesión</a>
