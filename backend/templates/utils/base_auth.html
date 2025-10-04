@@ -267,7 +267,7 @@
             display: block;
             font-weight: bold;
             color: #1976d2;
-            font-size: 1.1rem;
+            font-size: 12px;
         }
 
         .stat-label {
@@ -494,10 +494,10 @@
 <body>
     <nav class="navbar">
         <div class="navbar-left">
-            <a href="{% url 'dashboard' %}" class="logo">BookieWookie</a>
+            <a href="{% url 'libros' %}" class="logo">BookieWookie</a>
             
             <div class="nav-links">
-                <a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>
+                <a href="{% url 'libros' %}" {% if request.resolver_match.url_name == 'libros' %}class="active"{% endif %}>
                     Inicio
                 </a>
                 <a href="{% url 'recomendaciones' %}" {% if request.resolver_match.url_name == 'recomendaciones' %}class="active"{% endif %}>
@@ -641,7 +641,7 @@
                 </form>
             </div>
             <div class="nav-links">
-                <a href="{% url 'dashboard' %}">Inicio</a>
+                <a href="{% url 'libros' %}">Inicio</a>
                 <a href="{% url 'recomendaciones' %}">Recomendaciones</a>
                 <a href="{% url 'explorar_libros' %}">Explorar libros</a>
                 <a href="{% url 'mi_biblioteca' %}">Mi Biblioteca</a>
