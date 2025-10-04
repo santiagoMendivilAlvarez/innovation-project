@@ -169,3 +169,10 @@ def amazon_book_details(request, asin):
     }
     
     return render(request, 'amazon_book_details.html', context)
+
+def explorar_libros_view(request):
+    """
+    Vista para explorar el catálogo completo de libros.
+    """
+    context = {}
+    return render(request, 'authentication/explorar_libros.html', context)
