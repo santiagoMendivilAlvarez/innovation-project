@@ -16,7 +16,7 @@ class AmazonBooksAPI:
     API client for Amazon Books using web scraping approach.
     Note: For production, replace with official Amazon Product Advertising API.
     """
-    
+
     def __init__(self):
         """
         Initialize the Amazon Books API client.
@@ -34,11 +34,11 @@ class AmazonBooksAPI:
     def search_books(self, query: str, max_results: int = 10) -> Dict:
         """
         Search for books on Amazon.
-        
+
         Args:
             query (str): Search term for books
             max_results (int): Maximum number of results to return
-            
+
         Returns:
             Dict: Dictionary containing search results or error message
         """
@@ -55,26 +55,27 @@ class AmazonBooksAPI:
                 'i': 'stripbooks',  # Books category
                 'ref': 'sr_nr_i_0'
             }
-            
-            response = requests.get(search_url, params=params, headers=self.headers, timeout=10)
-            
+
+            response = requests.get(
+                search_url, params=params, headers=self.headers, timeout=10)
+
             # If we get blocked or error, return sample data
             if response.status_code != 200:
                 return self._get_sample_books(query, max_results)
-            
+
             # Parse the response (this is a simplified version)
             books = self._parse_search_results(response.text, max_results)
-            
+
             result = {
                 'books': books,
                 'total_results': len(books),
                 'source': 'amazon'
             }
-            
+
             # Cache for 1 hour
             cache.set(cache_key, result, 3600)
             return result
-            
+
         except requests.RequestException:
             # Return sample data if request fails
             return self._get_sample_books(query, max_results)
@@ -86,19 +87,19 @@ class AmazonBooksAPI:
         """
         Parse Amazon search results from HTML.
         This is a simplified parser - for production, consider using BeautifulSoup.
-        
+
         Args:
             html_content (str): HTML content from Amazon search
             max_results (int): Maximum results to parse
-            
+
         Returns:
             List[Dict]: List of book dictionaries
         """
         books = []
-        
+
         # This is a mock implementation since actual HTML parsing would be complex
         # In a real implementation, you would use BeautifulSoup to parse the HTML
-        
+
         # For demo purposes, return some sample data
         sample_books = [
             {
@@ -113,17 +114,17 @@ class AmazonBooksAPI:
                 'publication_date': '2023-01-01'
             }
         ]
-        
+
         return sample_books[:max_results]
 
     def _get_sample_books(self, query: str, max_results: int) -> Dict:
         """
         Return sample book data when Amazon API is unavailable.
-        
+
         Args:
             query (str): Search query
             max_results (int): Maximum number of results
-            
+
         Returns:
             Dict: Sample book data
         """
@@ -162,7 +163,7 @@ class AmazonBooksAPI:
                 'publication_date': '2023-06-10'
             }
         ]
-        
+
         return {
             'books': sample_books[:max_results],
             'total_results': len(sample_books[:max_results]),
@@ -173,10 +174,10 @@ class AmazonBooksAPI:
     def get_book_details(self, amazon_asin: str) -> Dict:
         """
         Get detailed information about a specific book using its ASIN.
-        
+
         Args:
             amazon_asin (str): Amazon Standard Identification Number
-            
+
         Returns:
             Dict: Book details or error message
         """
@@ -188,17 +189,19 @@ class AmazonBooksAPI:
         try:
             # Construct product URL
             product_url = f"{self.base_url}/dp/{amazon_asin}"
-            
-            response = requests.get(product_url, headers=self.headers, timeout=10)
+
+            response = requests.get(
+                product_url, headers=self.headers, timeout=10)
             response.raise_for_status()
-            
+
             # Parse product details
-            book_details = self._parse_product_details(response.text, amazon_asin)
-            
+            book_details = self._parse_product_details(
+                response.text, amazon_asin)
+
             # Cache for 24 hours
             cache.set(cache_key, book_details, 86400)
             return book_details
-            
+
         except requests.RequestException as e:
             return {'error': f'Error fetching book details: {str(e)}'}
         except Exception as e:
@@ -207,17 +210,17 @@ class AmazonBooksAPI:
     def _parse_product_details(self, html_content: str, asin: str) -> Dict:
         """
         Parse detailed book information from Amazon product page.
-        
+
         Args:
             html_content (str): HTML content from Amazon product page
             asin (str): Amazon ASIN
-            
+
         Returns:
             Dict: Book details
         """
         # This is a simplified mock implementation
         # In production, use BeautifulSoup to parse actual HTML
-        
+
         return {
             'title': 'Sample Detailed Amazon Book',
             'authors': ['Detailed Author'],
@@ -242,7 +245,7 @@ class AmazonBooksAPIAlternative:
     Alternative Amazon Books API using RapidAPI service.
     This requires a RapidAPI subscription but provides more reliable data.
     """
-    
+
     def __init__(self):
         """
         Initialize with RapidAPI credentials.
@@ -260,7 +263,7 @@ class AmazonBooksAPIAlternative:
         """
         if not self.rapidapi_key:
             return {'error': 'RapidAPI key not configured', 'books': []}
-        
+
         cache_key = f"rapidapi_amazon_books_{query}_{max_results}"
         cached_result = cache.get(cache_key)
         if cached_result:
@@ -274,23 +277,24 @@ class AmazonBooksAPIAlternative:
                 "country": "US",
                 "max_results": max_results
             }
-            
-            response = requests.get(url, headers=self.headers, params=params, timeout=15)
+
+            response = requests.get(
+                url, headers=self.headers, params=params, timeout=15)
             response.raise_for_status()
-            
+
             data = response.json()
-            
+
             # Process and format the response
             result = {
                 'books': self._format_rapidapi_results(data.get('products', [])),
                 'total_results': len(data.get('products', [])),
                 'source': 'amazon_rapidapi'
             }
-            
+
             # Cache for 2 hours
             cache.set(cache_key, result, 7200)
             return result
-            
+
         except requests.RequestException as e:
             return {'error': f'RapidAPI request failed: {str(e)}', 'books': []}
         except Exception as e:
@@ -301,7 +305,7 @@ class AmazonBooksAPIAlternative:
         Format RapidAPI results to match our expected format.
         """
         formatted_books = []
-        
+
         for product in products:
             book = {
                 'title': product.get('title', 'N/A'),
@@ -315,5 +319,5 @@ class AmazonBooksAPIAlternative:
                 'publication_date': 'N/A'
             }
             formatted_books.append(book)
-        
+
         return formatted_books
