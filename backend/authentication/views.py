@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Views for the authentication app with strict validation and security.
 """
@@ -175,8 +174,7 @@ def login_view(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            
-            logger.info(f"Intento de login para: {email}")
+            remember_me = form.cleaned_data.get('remember_me', False)
             
             user = authenticate(request, username=email, password=password)
             
@@ -233,6 +231,11 @@ def dashboard_view(request):
     user = request.user
     intereses_list = user.get_intereses_list()
     
+    # If there's a search query, redirect to search page
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        return redirect(f'/auth/libros/buscar/?search={search_query}')
+    
     context = {
         'user': user,
         'intereses': intereses_list,
@@ -242,7 +245,87 @@ def dashboard_view(request):
     }
 
     return render(request, 'dashboard.html', context)
-"""Email verification and password recovery views with strict validation and security."""
+
+
+@login_required
+def book_search_view(request):
+    """
+    Book search page with results from Google Books and Amazon.
+    """
+    from core.api.google_books import GoogleBooksAPI
+    from core.api.amazon_books import AmazonBooksAPI
+    
+    user = request.user
+    search_query = request.GET.get('search', '').strip()
+    all_books = []
+    google_error = None
+    amazon_error = None
+    
+    if search_query:
+        # Search in Google Books
+        google_api = GoogleBooksAPI()
+        google_result = google_api.fetch_book_details(search_query)
+        
+        if isinstance(google_result, dict) and 'error' in google_result:
+            google_error = google_result['error']
+        elif isinstance(google_result, list):
+            for book in google_result:
+                book['source'] = 'Google Books'
+                book['book_id'] = book.get('previewLink', '').split('id=')[-1] if 'previewLink' in book else ''
+                all_books.append(book)
+        
+        # Search in Amazon
+        amazon_api = AmazonBooksAPI()
+        amazon_result = amazon_api.fetch_book_details(search_query, max_results=10)
+        
+        if isinstance(amazon_result, dict) and 'error' in amazon_result:
+            amazon_error = amazon_result['error']
+        elif isinstance(amazon_result, list):
+            for book in amazon_result:
+                book['source'] = 'Amazon'
+                book['book_id'] = book.get('url', '').split('/')[-1] if 'url' in book else ''
+                all_books.append(book)
+    
+    context = {
+        'user': user,
+        'search_query': search_query,
+        'books': all_books,
+        'total_results': len(all_books),
+        'google_error': google_error,
+        'amazon_error': amazon_error,
+        'has_results': bool(all_books),
+    }
+
+    return render(request, 'book_search.html', context)
+
+
+@login_required
+def book_detail_view(request, book_id):
+    """
+    Book detail page - shows basic book information.
+    """
+    # For now, we'll just show the title from the query parameter
+    book_title = request.GET.get('title', 'Libro sin título')
+    book_author = request.GET.get('author', 'Autor desconocido')
+    book_source = request.GET.get('source', 'Fuente desconocida')
+    book_thumbnail = request.GET.get('thumbnail', '')
+    book_price = request.GET.get('price', 'N/A')
+    
+    context = {
+        'user': request.user,
+        'book': {
+            'id': book_id,
+            'title': book_title,
+            'authors': [book_author] if book_author != 'Autor desconocido' else [],
+            'source': book_source,
+            'thumbnail': book_thumbnail,
+            'price': book_price,
+        }
+    }
+    
+    return render(request, 'book_detail.html', context)
+
+
 @csrf_protect
 def confirm_email_view(request):
     """Handle email confirmation with expiration and attempt limits."""
@@ -267,7 +350,17 @@ def confirm_email_view(request):
             user = CustomUser.objects.get(id=user_id)
             
             subject = 'Nuevo código de verificación - BookieWookie'
-            message = f"Hola {user.nombre_completo},\n\nTu nuevo código de verificación es: {nuevo_codigo}\n\nEste código es válido por 10 minutos.\n\nSi no solicitaste este código, puedes ignorar este mensaje.\n\nEquipo de BookieWookie"
+            message = f"""
+Hola {user.nombre_completo},
+
+Tu nuevo código de verificación es: {nuevo_codigo}
+
+Este código es válido por 10 minutos.
+
+Si no solicitaste este código, puedes ignorar este mensaje.
+
+Equipo de BookieWookie
+            """.strip()
             
             if _send_email(subject, message, user.email):
                 logger.info(f"Nuevo código enviado a: {user.email}")
@@ -560,3 +653,21 @@ def update_intereses_api(request):
     except Exception as e:
         logger.error(f"Error actualizando intereses: {str(e)}")
         return JsonResponse({'success': False, 'message': 'Error actualizando intereses'})
+    
+@login_required
+def recomendaciones_view(request):
+    """Vista para mostrar recomendaciones personalizadas de libros"""
+    user = request.user
+    context = {
+        'user': user,
+    }
+    return render(request, 'recomendaciones.html', context)
+
+@login_required
+def mi_biblioteca_view(request):
+    """Vista para mostrar la biblioteca personal del usuario"""
+    user = request.user
+    context = {
+        'user': user,
+    }
+    return render(request, 'mi_biblioteca.html', context)

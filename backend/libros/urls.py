@@ -10,4 +10,5 @@ urlpatterns = [
     path("books/", views.book_search, name="book_search"),
     path("api/search/", views.book_search_api, name="book_search_api"),
     path("amazon/<str:asin>/", views.amazon_book_details, name="amazon_book_details"),
+    path('', views.explorar_libros_view, name='explorar_libros')
 ]
