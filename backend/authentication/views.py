@@ -663,6 +663,8 @@ def verify_reset_code_view(request):
         elif not codigo_ingresado.isdigit():
             messages.error(request, 'El código solo debe contener números.')
         elif codigo_ingresado == codigo_correcto:
+            request.session['code_verified'] = True
+            request.session.modified = True
             messages.success(request, 'Código verificado correctamente.')
             return redirect('reset_password')
         else:
