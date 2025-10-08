@@ -132,7 +132,7 @@ def register_view(request):
                         messages.warning(request,
                                          f'Ya hay un proceso de verificación activo para {existing_user.email}. '
                                          'Revisa tu correo o completa la verificación.')
-                        return redirect('confirm_email')
+                        return redirect('')
                 except CustomUser.DoesNotExist:
                     _clean_session_data(
                         request, ['user_id_temp', 'codigo_verificacion'])
@@ -244,7 +244,7 @@ def login_view(request):
                     request, f'¡Bienvenido de vuelta, {user.nombre_completo}!')
 
                 next_page = request.GET.get('next')
-                return redirect(next_page) if next_page else redirect('dashboard')
+                return redirect(next_page) if next_page else redirect('home')
             else:
                 messages.error(request, 'Email o contraseña incorrectos.')
                 logger.warning(f"Intento de login fallido para: {email}")
@@ -541,7 +541,7 @@ Equipo de BookieWookie
                 logger.info(f"Email verificado exitosamente: {user.email}")
                 messages.success(request,
                                  f'Email verificado correctamente! Bienvenido a BookieWookie, {user.nombre_completo}.')
-                return redirect('dashboard')
+                return redirect('home')
 
             except CustomUser.DoesNotExist:
                 messages.error(
@@ -663,6 +663,8 @@ def verify_reset_code_view(request):
         elif not codigo_ingresado.isdigit():
             messages.error(request, 'El código solo debe contener números.')
         elif codigo_ingresado == codigo_correcto:
+            request.session['code_verified'] = True
+            request.session.modified = True
             messages.success(request, 'Código verificado correctamente.')
             return redirect('reset_password')
         else:
