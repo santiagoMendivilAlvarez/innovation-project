@@ -94,13 +94,11 @@ def _handle_form_errors(request, form):
                 messages.error(request, f"{field_label}: {error}")
 
 
-"""Handle all views related to authentication."""
-
-
 def home_view(request):
     """
     Home page with redirect logic.
     """
+    print("inside home_view")
     if request.user.is_authenticated:
         user = request.user
         intereses_list = user.get_intereses_list()

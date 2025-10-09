@@ -1,7 +1,7 @@
 """
 Views for the libros app.
 """
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.core.paginator import Paginator
@@ -24,11 +24,34 @@ def view(request):
     """
     Sample view to display all books and users.
     """
+    print("inside view")
     context = {
         'libros'  : Libro.objects.all(),
         'usuarios': get_user_model().objects.all()
     }
     return render(request, 'libros.html', context)
+
+
+def home_view(request):
+    """
+    Home page with redirect logic.
+    """
+    print("inside libros home_view")
+    if request.user.is_authenticated:
+        user = request.user
+        intereses_list = user.get_intereses_list()
+        search_query = request.GET.get('search', '').strip()
+        if search_query:
+            return redirect(f'/auth/libros/buscar/?search={search_query}')
+        context = {
+            'user': user,
+            'intereses': intereses_list,
+            'intereses_display': user.get_intereses_display(),
+            'total_intereses': len(intereses_list),
+            'email_verified': user.email_verificado,
+        }
+        return render(request, 'dashboard.html', context)
+    return render(request, 'home.html')
 
 
 def book_search(request):
@@ -170,9 +193,3 @@ def amazon_book_details(request, asin):
     
     return render(request, 'amazon_book_details.html', context)
 
-def explorar_libros_view(request):
-    """
-    Vista para explorar el catálogo completo de libros.
-    """
-    context = {}
-    return render(request, 'authentication/explorar_libros.html', context)
