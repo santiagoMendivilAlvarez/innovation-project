@@ -1,0 +1,159 @@
+<nav class="navbar">
+    <div class="navbar-left">
+        <a href="{% url 'libros' %}" class="logo">BookieWookie</a>
+        
+        <div class="nav-links">
+            <a href="{% url 'libros' %}" {% if request.resolver_match.url_name == 'libros' %}class="active"{% endif %}>
+                Inicio
+            </a>
+            <a href="{% url 'recomendaciones' %}" {% if request.resolver_match.url_name == 'recomendaciones' %}class="active"{% endif %}>
+                Recomendaciones
+            </a>
+            <a href="{% url 'explorar_libros' %}" {% if request.resolver_match.url_name == 'explorar_libros' %}class="active"{% endif %}>
+                Explorar libros
+            </a>
+            <a href="{% url 'mi_biblioteca' %}" {% if request.resolver_match.url_name == 'mi_biblioteca' %}class="active"{% endif %}>
+                Mi Biblioteca
+            </a>
+        </div>
+    </div>
+
+    <div class="navbar-center">
+        <div class="navbar-search">
+            <form action="{% url 'book_search' %}" method="GET" class="search-container">
+                <input type="text" class="search-input" placeholder="Buscar libros..." name="search" value="{{ request.GET.search|default:'' }}">
+                <button type="submit" class="search-btn" title="Buscar libros" aria-label="Buscar libros">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="navbar-right">
+        <div class="user-menu" id="userMenuToggle" role="button" tabindex="0" aria-label="Menú de usuario" title="Abrir menú de usuario">
+            <div class="user-avatar">
+                {% if user.nombre_completo %}
+                    {{ user.nombre_completo|first|upper }}
+                {% else %}
+                    {{ user.email|first|upper }}
+                {% endif %}
+            </div>
+            <div class="user-info">
+                <div class="user-name">
+                    {% if user.nombre_completo %}
+                        {{ user.nombre_completo|truncatechars:20 }}
+                    {% else %}
+                        Usuario
+                    {% endif %}
+                </div>
+                <div class="user-email">{{ user.email|truncatechars:25 }}</div>
+            </div>
+            <span class="dropdown-arrow" aria-hidden="true">▼</span>
+        </div>
+
+        <div class="user-dropdown" id="userDropdown">
+            <div class="dropdown-header">
+                <div class="dropdown-user-info">
+                    <h4>
+                        {% if user.nombre_completo %}
+                            {{ user.nombre_completo }}
+                        {% else %}
+                            Usuario
+                        {% endif %}
+                    </h4>
+                    <p>{{ user.email }}</p>
+                    <p style="margin-top: 0.25rem; font-size: 0.8rem;">
+                        {% if user.universidad %}
+                            {{ user.universidad }}
+                        {% else %}
+                            Universidad
+                        {% endif %}
+                        •
+                        {% if user.get_nivel_academico_display %}
+                            {{ user.get_nivel_academico_display }}
+                        {% else %}
+                            Nivel académico
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="dropdown-user-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">
+                            {% if user.libros_leidos %}
+                                {{ user.libros_leidos }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </span>
+                        <div class="stat-label">Libros comprados</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">
+                            {% if user.favoritos %}
+                                {{ user.favoritos }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </span>
+                        <div class="stat-label">Favoritos</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">
+                            {% if user.recomendaciones %}
+                                {{ user.recomendaciones }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </span>
+                        <div class="stat-label">Recomendaciones</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dropdown-menu">
+                <a href="#perfil" class="dropdown-item">
+                    <span class="dropdown-item-icon">👤</span>
+                    Mi Perfil
+                </a>
+                <a href="#configuracion" class="dropdown-item">
+                    <span class="dropdown-item-icon">⚙️</span>
+                    Configuración
+                </a>
+                <div class="dropdown-divider"></div>
+                
+                <a href="{% url 'logout' %}" class="dropdown-item danger">
+                    <span class="dropdown-item-icon">🚪</span>
+                    Cerrar Sesión
+                </a>
+            </div>
+        </div>
+
+        <button class="mobile-menu-toggle" id="mobileToggle" aria-label="Abrir menú" title="Abrir menú de navegación" type="button">
+            <span id="toggleIcon" aria-hidden="true">☰</span>
+        </button>
+    </div>
+
+    <div class="nav-mobile" id="navMobile">
+        <div class="search-mobile">
+            <form action="{% url 'book_search' %}" method="GET" class="search-container">
+                <input type="text" class="search-input" placeholder="Buscar libros..." name="search" value="{{ request.GET.search|default:'' }}">
+                <button type="submit" class="search-btn" title="Buscar libros" aria-label="Buscar libros en versión móvil">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'libros' %}">Inicio</a>
+            <a href="{% url 'recomendaciones' %}">Recomendaciones</a>
+            <a href="{% url 'explorar_libros' %}">Explorar libros</a>
+            <a href="{% url 'mi_biblioteca' %}">Mi Biblioteca</a>
+            <a href="#perfil">Mi Perfil</a>
+            <a href="#configuracion">Configuración</a>
+            <a href="{% url 'logout' %}" style="color: #ffcdd2;">Cerrar Sesión</a>
+        </div>
+    </div>
+</nav>
