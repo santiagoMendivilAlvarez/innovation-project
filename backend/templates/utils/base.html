@@ -1,0 +1,35 @@
+<!--Template for unauthenticated users-->
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf_token" content="{{ csrf_token }}">
+    <title>{% block title %}BookieWookie{% endblock %}</title>
+    {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% endblock %}
+</head>
+<body>
+    {% if request.user.is_authenticated %}
+        {% include "utils/nav_auth.html" %} 
+    {% else %}
+        {% include "utils/nav_guest.html" %}
+    {% endif %}
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <div class="main-content">
+        {% block content %}
+        
+        {% endblock %}
+    </div>
+
+    <footer class="footer">
+    </footer>
+
+    {% block extra_js %}
+    <script src="{% static 'js/main.js' %}"></script>
+    {% endblock %}
+</body>
+</html>
