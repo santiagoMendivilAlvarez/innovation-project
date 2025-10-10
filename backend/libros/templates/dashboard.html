@@ -1,24 +1,10 @@
-{% extends 'base.html' %}
+{% extends 'utils/base.html' %}
 {% load static %}
 
 {% block title %}Dashboard - BookieWookie{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% endblock %}
-
 {% block content %}
-<div class="dashboard-container">
-    {% if messages %}
-        <div class="message-container">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
+<div class="main-container">
     <div class="hero-section">
         <h1 class="hero-title">Encuentra el mejor precio</h1>
         <p class="hero-subtitle">
@@ -144,16 +130,29 @@
             </div>
         </div>
     </div>
+    {% if not request.user.is_authenticated %}
+    <div class="cta-section">
+        <h2 class="cta-title">¿Listo para empezar a ahorrar?</h2>
+        <p class="cta-subtitle">
+            Únete a miles de lectores que ya están ahorrando en sus libros favoritos
+        </p>
+        <div class="cta-buttons">
+            <a href="/register/" class="btn btn-white">Registrarse</a>
+            <a href="/login/" class="btn btn-transparent">Iniciar Sesión</a>
+        </div>
+    </div>
+    {% endif %}
  </div>
+ {% if request.user.is_authenticated %}
  {% include 'chatbot.html' %}
+ {% endif %}
+ 
  
  <script>
- // Ensure the search form works correctly
  document.addEventListener('DOMContentLoaded', function() {
      const searchForm = document.getElementById('dashboardSearchForm');
      if (searchForm) {
          searchForm.addEventListener('submit', function(e) {
-             // Ensure it's a GET request
              if (this.method.toLowerCase() !== 'get') {
                  this.method = 'GET';
              }
