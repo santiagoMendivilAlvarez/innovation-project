@@ -1,61 +1,30 @@
 """
 Views for the authentication app with strict validation and security.
 """
-from datetime import timedelta
 import random
 import string
 import json
 import logging
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from datetime                       import timedelta
+from django.shortcuts               import render, redirect
+from django.contrib.auth            import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from django.utils.crypto import get_random_string
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_protect
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from .forms import CustomUserCreationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
-from .models import CustomUser
+from django.contrib                 import messages
+from django.core.mail               import send_mail
+from django.conf                    import settings
+from django.utils.crypto            import get_random_string
+from django.http                    import JsonResponse
+from django.views.decorators.http   import require_http_methods
+from django.views.decorators.csrf   import csrf_protect
+from django.core.exceptions         import ValidationError
+from django.utils                   import timezone
+from .forms                         import CustomUserCreationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
+from .models                        import CustomUser
+from core.sessions.session          import SessionSubsystem
+_session = SessionSubsystem()
 
 
 logger = logging.getLogger(__name__)
-
-
-"""Functions for security, validation, and email handling."""
-
-
-def _clean_session_data(request, keys):
-    """
-    Helper: Clean specific keys from session
-    """
-    for key in keys:
-        if key in request.session:
-            del request.session[key]
-
-
-def _check_session_expiration(request, timestamp_key, minutes=10):
-    """
-    Helper: Check if a session has expired
-    """
-    timestamp_str = request.session.get(timestamp_key)
-    if timestamp_str:
-        try:
-            timestamp = timezone.datetime.fromisoformat(timestamp_str)
-            return timezone.now() - timestamp > timedelta(minutes=minutes)
-        except (ValueError, TypeError):
-            return True
-    return True
-
-
-def _generate_verification_code():
-    """
-    Helper: Generate a 6-digit verification code.
-    """
-    return ''.join(random.choices(string.digits, k=6))
 
 
 def _send_email(subject, message, recipient_email):
@@ -93,29 +62,6 @@ def _handle_form_errors(request, form):
                 field_label = form.fields[field].label or field
                 messages.error(request, f"{field_label}: {error}")
 
-
-def home_view(request):
-    """
-    Home page with redirect logic.
-    """
-    print("inside home_view")
-    if request.user.is_authenticated:
-        user = request.user
-        intereses_list = user.get_intereses_list()
-        search_query = request.GET.get('search', '').strip()
-        if search_query:
-            return redirect(f'/auth/libros/buscar/?search={search_query}')
-        context = {
-            'user': user,
-            'intereses': intereses_list,
-            'intereses_display': user.get_intereses_display(),
-            'total_intereses': len(intereses_list),
-            'email_verified': user.email_verificado,
-        }
-        return render(request, 'dashboard.html', context)
-    return render(request, 'home.html')
-
-
 def register_view(request):
     """Handle user registration with strict validation."""
     if request.method == 'POST':
@@ -132,14 +78,14 @@ def register_view(request):
                                          'Revisa tu correo o completa la verificación.')
                         return redirect('')
                 except CustomUser.DoesNotExist:
-                    _clean_session_data(
+                    _session.clean_session_data(
                         request, ['user_id_temp', 'codigo_verificacion'])
 
             try:
                 user = form.save()
                 logger.info(f"Usuario registrado: {user.email}")
 
-                codigo_verificacion = _generate_verification_code()
+                codigo_verificacion = _session.generate_verification_code()
                 request.session.update({
                     'codigo_verificacion': codigo_verificacion,
                     'user_id_temp': user.id,
@@ -448,7 +394,7 @@ def confirm_email_view(request):
             return JsonResponse({'success': False, 'message': 'Has excedido el límite de reenvíos'})
 
         try:
-            nuevo_codigo = _generate_verification_code()
+            nuevo_codigo = _session.generate_verification_code()
             request.session.update({
                 'codigo_verificacion': nuevo_codigo,
                 'codigo_timestamp': timezone.now().isoformat(),
@@ -485,7 +431,7 @@ Equipo de BookieWookie
             request, 'No hay ningún proceso de verificación activo. Por favor regístrate nuevamente.')
         return redirect('register')
 
-    if _check_session_expiration(request, 'codigo_timestamp', 10):
+    if _session.check_session_expiration(request, 'codigo_timestamp', 10):
         user_id = request.session.get('user_id_temp')
         try:
             user = CustomUser.objects.get(id=user_id)
@@ -493,7 +439,7 @@ Equipo de BookieWookie
         except CustomUser.DoesNotExist:
             pass
 
-        _clean_session_data(
+        _session.clean_session_data(
             request, ['codigo_verificacion', 'user_id_temp', 'codigo_timestamp'])
         messages.error(
             request, 'El código de verificación ha expirado. Por favor regístrate nuevamente.')
@@ -515,7 +461,7 @@ Equipo de BookieWookie
             except CustomUser.DoesNotExist:
                 pass
 
-            _clean_session_data(request, [
+            _session.clean_session_data(request, [
                                 'codigo_verificacion', 'user_id_temp', 'verification_attempts', 'codigo_timestamp'])
             messages.error(request,
                            'Has excedido el número máximo de intentos. Por favor regístrate nuevamente.')
@@ -532,7 +478,7 @@ Equipo de BookieWookie
                 user.is_active = True
                 user.save()
 
-                _clean_session_data(request, [
+                _session.clean_session_data(request, [
                                     'codigo_verificacion', 'user_id_temp', 'verification_attempts', 'codigo_timestamp'])
 
                 login(request, user)
@@ -589,7 +535,7 @@ def forgot_password_view(request):
             email = form.cleaned_data['email']
             try:
                 user = CustomUser.objects.get(email=email, is_active=True)
-                codigo = _generate_verification_code()
+                codigo = _session.generate_verification_code()
 
                 request.session.update({
                     'reset_email': email,
@@ -642,8 +588,8 @@ def verify_reset_code_view(request):
             request, 'Sesión expirada. Por favor solicita un nuevo código.')
         return redirect('forgot_password')
 
-    if _check_session_expiration(request, 'reset_timestamp', 10):
-        _clean_session_data(
+    if _session.check_session_expiration(request, 'reset_timestamp', 10):
+        _session.clean_session_data(
             request, ['reset_email', 'reset_code', 'reset_timestamp'])
         messages.error(
             request, 'El código ha expirado. Por favor solicita uno nuevo.')
@@ -691,7 +637,7 @@ def reset_password_view(request):
                 user.set_password(form.cleaned_data['new_password'])
                 user.save()
 
-                _clean_session_data(
+                _session.clean_session_data(
                     request, ['reset_email', 'reset_code', 'reset_timestamp'])
 
                 logger.info(
