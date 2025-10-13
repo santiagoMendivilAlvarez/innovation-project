@@ -8,8 +8,7 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    path('libros/buscar/', views.book_search_view, name='book_search'),
-    path('libros/<str:book_id>/', views.book_detail_view, name='book_detail'),
+    
 
     path('recomendaciones/', views.recomendaciones_view, name='recomendaciones'),
     path('mi-biblioteca/', views.mi_biblioteca_view, name='mi_biblioteca'),
