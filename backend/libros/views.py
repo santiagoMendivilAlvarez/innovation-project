@@ -1,6 +1,7 @@
 """
 Views for the libros app.
 """
+from datetime import datetime
 from django.shortcuts               import render, redirect
 from django.contrib.auth            import get_user_model
 from .models                        import Libro
@@ -48,6 +49,7 @@ def home_view(request: HttpRequest) -> HttpResponse:
         user           = request.user
         intereses_list = user.get_intereses_list()
         search_query   = request.GET.get('search', '').strip()
+        last_ten_books = Libro.objects.order_by('-fecha_creacion')[:10]
         if search_query:
             return redirect(f'book_search?search={search_query}') # @todo: This must search the books in another view.
         context = {
@@ -56,6 +58,7 @@ def home_view(request: HttpRequest) -> HttpResponse:
             'intereses_display': user.get_intereses_display(),
             'total_intereses'  : len(intereses_list),
             'email_verified'   : user.email_verificado,
+            'last_ten_books'   : last_ten_books
         }
 
     return render(request, 'dashboard.html', context)

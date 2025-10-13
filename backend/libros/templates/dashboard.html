@@ -75,59 +75,32 @@
     <!-- Show default content -->
     <div class="books-section">
         <div class="section-header">
-            <h2 class="section-title">Los más buscados hoy</h2>
-            <a href="#" class="view-all-btn">Ver más</a>
+            <h2 class="section-title">Los libros mas recientes</h2>
+            <a href="{% url "libros" %}" class="view-all-btn">Ver más</a>
         </div>
-        
+
         <div class="books-grid">
-            <div class="book-card">
-                <div class="book-cover" style="background: linear-gradient(135deg, #4caf50, #2e7d32);">📖</div>
-                <div class="book-info">
-                    <h4 class="book-title">Cien años de soledad</h4>
-                    <p class="book-author">Gabriel García Márquez</p>
-                    <span class="book-category">Literatura</span>
+            {% if last_ten_books %}
+                {% for book in last_ten_books %}
+                    <div class="book-card">
+                        <div class="book-cover" style="background: linear-gradient(135deg, #4caf50, #2e7d32);">📖</div>
+                        <div class="book-info">
+                            <h4 class="book-title">{{ book.titulo }}</h4>
+                            <p class="book-author">{{ book.autor }}</p>
+                            <span class="book-category">{{ book.categoria.nombre }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="row d-flex">
+                    <div class="col-md-12 col-lg-12 col-sm-12 text-center">
+                        <h3>
+                        No books available
+                        </h3>
+                    </div>
                 </div>
-            </div>
-            <div class="book-card">
-                <div class="book-cover" style="background: linear-gradient(135deg, #ff9800, #f57c00);">📖</div>
-                <div class="book-info">
-                    <h4 class="book-title">1984</h4>
-                    <p class="book-author">George Orwell</p>
-                    <span class="book-category">Ciencia Ficción</span>
-                </div>
-            </div>
-            <div class="book-card">
-                <div class="book-cover" style="background: linear-gradient(135deg, #3f51b5, #303f9f);">📖</div>
-                <div class="book-info">
-                    <h4 class="book-title">El Principito</h4>
-                    <p class="book-author">Antoine de Saint-Exupéry</p>
-                    <span class="book-category">Infantil</span>
-                </div>
-            </div>
-            <div class="book-card">
-                <div class="book-cover" style="background: linear-gradient(135deg, #e91e63, #c2185b);">📖</div>
-                <div class="book-info">
-                    <h4 class="book-title">La Sombra del Viento</h4>
-                    <p class="book-author">Carlos Ruiz Zafón</p>
-                    <span class="book-category">Misterio</span>
-                </div>
-            </div>
-            <div class="book-card">
-                <div class="book-cover" style="background: linear-gradient(135deg, #009688, #00796b);">📖</div>
-                <div class="book-info">
-                    <h4 class="book-title">Sapiens: De animales a dioses</h4>
-                    <p class="book-author">Yuval Noah Harari</p>
-                    <span class="book-category">Historia</span>
-                </div>
-            </div>
-            <div class="book-card">
-                <div class="book-cover" style="background: linear-gradient(135deg, #9c27b0, #7b1fa2);">📖</div>
-                <div class="book-info">
-                    <h4 class="book-title">El Alquimista</h4>
-                    <p class="book-author">Paulo Coelho</p>
-                    <span class="book-category">Filosofía</span>
-                </div>
-            </div>
+            {% endif %}
+            
         </div>
     </div>
     {% if not request.user.is_authenticated %}
