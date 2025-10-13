@@ -1,72 +1,77 @@
 """
 Views for the libros app.
 """
-from django.shortcuts import render, redirect
-from django.contrib.auth import get_user_model
-from django.db.models import Q
-from django.core.paginator import Paginator
-from .models import Libro
-##from core.api.google_books    import GoogleBooksAPI
-##api = GoogleBooksAPI()
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-from libros.models import Libro
-from core.api.google_books import GoogleBooksAPI
-from core.api.amazon_books import AmazonBooksAPI, AmazonBooksAPIAlternative
-import json
-
-google_api = GoogleBooksAPI()
-amazon_api = AmazonBooksAPI()
+from django.shortcuts               import render, redirect
+from django.contrib.auth            import get_user_model
+from .models                        import Libro
+from django.http                    import HttpResponse, JsonResponse, HttpRequest
+from django.views.decorators.http   import require_http_methods
+from django.contrib.auth.decorators import login_required
+from django.db.models               import QuerySet
+from libros.models                  import Libro
+from core.api.google_books          import GoogleBooksAPI
+from core.api.amazon_books          import AmazonBooksAPI, AmazonBooksAPIAlternative
+google_api      = GoogleBooksAPI()
+amazon_api      = AmazonBooksAPI()
 amazon_rapidapi = AmazonBooksAPIAlternative()
 
 
-def view(request):
+def books(request: HttpRequest) -> HttpResponse:
     """
-    Sample view to display all books and users.
+    Display all books.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered response containing all books and users.
     """
-    print("inside view")
-    context = {
+    context: dict = {
         'libros'  : Libro.objects.all(),
         'usuarios': get_user_model().objects.all()
     }
     return render(request, 'libros.html', context)
 
 
-def home_view(request):
+def home_view(request: HttpRequest) -> HttpResponse:
     """
-    Home page with redirect logic.
+    This is the home view for the whole website.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The rendered response for the home view.
     """
-    print("inside libros home_view")
+    context = {}
     if request.user.is_authenticated:
-        user = request.user
+        user           = request.user
         intereses_list = user.get_intereses_list()
-        search_query = request.GET.get('search', '').strip()
+        search_query   = request.GET.get('search', '').strip()
         if search_query:
-            return redirect(f'/auth/libros/buscar/?search={search_query}')
+            return redirect(f'book_search?search={search_query}') # @todo: This must search the books in another view.
         context = {
-            'user': user,
-            'intereses': intereses_list,
+            'user'             : user,
+            'intereses'        : intereses_list,
             'intereses_display': user.get_intereses_display(),
-            'total_intereses': len(intereses_list),
-            'email_verified': user.email_verificado,
+            'total_intereses'  : len(intereses_list),
+            'email_verified'   : user.email_verificado,
         }
-        return render(request, 'dashboard.html', context)
-    return render(request, 'home.html')
+
+    return render(request, 'dashboard.html', context)
 
 
 def book_search(request):
     """
     Search for books from both Google Books and Amazon.
     """
-    # Accept both 'q' and 'search' parameters for flexibility
-    query = request.GET.get('q') or request.GET.get('search', '')
-    source = request.GET.get('source', 'all')  # 'google', 'amazon', or 'all'
-    
-    context = {
-        'query': query,
-        'google_results': {},
-        'amazon_results': {},
-        'combined_results': []
+    query: QuerySet = request.GET.get('q') or request.GET.get('search', '')
+    source: str     = request.GET.get('source', 'all')
+    context: dict   = {
+        'query'            : query,
+        'google_results'   : {},
+        'amazon_results'   : {},
+        'combined_results' : []
     }
     
     if query:
@@ -116,6 +121,67 @@ def book_search(request):
             print(f"Error in book search: {e}")
             context['error'] = f"Error searching books: {str(e)}"
     
+    return render(request, 'book_search.html', context)
+
+@login_required
+def book_search_view(request):
+    """
+    Book search page with results from Google Books and Amazon.
+    """
+    from core.api.google_books import GoogleBooksAPI
+    from core.api.amazon_books import AmazonBooksAPI
+
+    user = request.user
+    search_query = request.GET.get('search', '').strip()
+    all_books = []
+    google_error = None
+    amazon_error = None
+
+    if search_query:
+        # Search in Google Books
+        google_api = GoogleBooksAPI()
+        google_result = google_api.fetch_book_details(search_query)
+
+        if isinstance(google_result, dict) and 'error' in google_result:
+            google_error = google_result['error']
+        elif isinstance(google_result, list):
+            for book in google_result:
+                book['source'] = 'Google Books'
+                book['book_id'] = book.get('previewLink', '').split(
+                    'id=')[-1] if 'previewLink' in book else ''
+                all_books.append(book)
+
+        # Search in Amazon
+        amazon_api = AmazonBooksAPI()
+        amazon_result = amazon_api.fetch_book_details(
+            search_query, max_results=10)
+
+        if isinstance(amazon_result, dict) and 'error' in amazon_result:
+            amazon_error = amazon_result['error']
+        elif isinstance(amazon_result, list):
+            for book in amazon_result:
+                book['source'] = 'Amazon'
+                book['book_id'] = book.get('url', '').split(
+                    '/')[-1] if 'url' in book else ''
+                all_books.append(book)
+
+    intereses_list = user.get_intereses_list()
+
+    # If there's a search query, redirect to search page
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        return redirect(f'/auth/libros/buscar/?search={search_query}')
+
+    context = {
+        'user': user,
+        'search_query': search_query,
+        'books': all_books,
+        'total_results': len(all_books),
+        'google_error': google_error,
+        'amazon_error': amazon_error,
+        'has_results': bool(all_books),
+    }
+
     return render(request, 'book_search.html', context)
 
 
@@ -193,3 +259,29 @@ def amazon_book_details(request, asin):
     
     return render(request, 'amazon_book_details.html', context)
 
+
+@login_required
+def book_detail_view(request, book_id):
+    """
+    Book detail page - shows basic book information.
+    """
+    # For now, we'll just show the title from the query parameter
+    book_title = request.GET.get('title', 'Libro sin título')
+    book_author = request.GET.get('author', 'Autor desconocido')
+    book_source = request.GET.get('source', 'Fuente desconocida')
+    book_thumbnail = request.GET.get('thumbnail', '')
+    book_price = request.GET.get('price', 'N/A')
+
+    context = {
+        'user': request.user,
+        'book': {
+            'id': book_id,
+            'title': book_title,
+            'authors': [book_author] if book_author != 'Autor desconocido' else [],
+            'source': book_source,
+            'thumbnail': book_thumbnail,
+            'price': book_price,
+        }
+    }
+
+    return render(request, 'book_detail.html', context)

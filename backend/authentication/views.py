@@ -1,65 +1,42 @@
 """
 Views for the authentication app with strict validation and security.
 """
-from datetime import timedelta
-import random
-import string
 import json
 import logging
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from typing import Any
+from django.shortcuts               import render, redirect
+from django.contrib.auth            import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from django.utils.crypto import get_random_string
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_protect
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from .forms import CustomUserCreationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
-from .models import CustomUser
+from django.contrib                 import messages
+from django.core.mail               import send_mail
+from django.conf                    import settings
+from django.utils.crypto            import get_random_string
+from django.http                    import JsonResponse, HttpRequest
+from django.views.decorators.http   import require_http_methods
+from django.views.decorators.csrf   import csrf_protect
+from django.core.exceptions         import ValidationError
+from django.utils                   import timezone
+from .forms                         import CustomUserCreationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
+from .models                        import CustomUser
+from core.sessions.session          import SessionSubsystem
+_session = SessionSubsystem()
 
 
 logger = logging.getLogger(__name__)
 
 
-"""Functions for security, validation, and email handling."""
-
-
-def _clean_session_data(request, keys):
+def _send_email(subject: str, message: str, recipient_email: str) -> bool:
     """
-    Helper: Clean specific keys from session
+    Functionality to send an email to a person.
+
+    Args:
+        subject (str): The subject that the email is being sent for. 
+        message (str): The messages that will be sent in the email. 
+        recipient_email (str): The person that the email is being sent to.
+
+    Returns:
+        bool: The result of the email sending action.
     """
-    for key in keys:
-        if key in request.session:
-            del request.session[key]
-
-
-def _check_session_expiration(request, timestamp_key, minutes=10):
-    """
-    Helper: Check if a session has expired
-    """
-    timestamp_str = request.session.get(timestamp_key)
-    if timestamp_str:
-        try:
-            timestamp = timezone.datetime.fromisoformat(timestamp_str)
-            return timezone.now() - timestamp > timedelta(minutes=minutes)
-        except (ValueError, TypeError):
-            return True
-    return True
-
-
-def _generate_verification_code():
-    """
-    Helper: Generate a 6-digit verification code.
-    """
-    return ''.join(random.choices(string.digits, k=6))
-
-
-def _send_email(subject, message, recipient_email):
-    """Send email with error handling."""
     try:
         send_mail(
             subject,
@@ -74,9 +51,13 @@ def _send_email(subject, message, recipient_email):
         return False
 
 
-def _handle_form_errors(request, form):
+def _handle_form_errors(request: HttpRequest, form: Any) -> None:
     """
-    Helper: Form error handling messages.
+    Method to handle any error that occurs during processing a form.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        form (Any): The form used to check if there are any errors. 
     """
     for field, errors in form.errors.items():
         for error in errors:
@@ -94,33 +75,10 @@ def _handle_form_errors(request, form):
                 messages.error(request, f"{field_label}: {error}")
 
 
-def home_view(request):
-    """
-    Home page with redirect logic.
-    """
-    print("inside home_view")
-    if request.user.is_authenticated:
-        user = request.user
-        intereses_list = user.get_intereses_list()
-        search_query = request.GET.get('search', '').strip()
-        if search_query:
-            return redirect(f'/auth/libros/buscar/?search={search_query}')
-        context = {
-            'user': user,
-            'intereses': intereses_list,
-            'intereses_display': user.get_intereses_display(),
-            'total_intereses': len(intereses_list),
-            'email_verified': user.email_verificado,
-        }
-        return render(request, 'dashboard.html', context)
-    return render(request, 'home.html')
-
-
-def register_view(request):
+def register_view(request: HttpRequest):
     """Handle user registration with strict validation."""
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
-
         if form.is_valid():
             if 'user_id_temp' in request.session:
                 user_id = request.session.get('user_id_temp')
@@ -132,14 +90,14 @@ def register_view(request):
                                          'Revisa tu correo o completa la verificación.')
                         return redirect('')
                 except CustomUser.DoesNotExist:
-                    _clean_session_data(
+                    _session.clean_session_data(
                         request, ['user_id_temp', 'codigo_verificacion'])
 
             try:
                 user = form.save()
                 logger.info(f"Usuario registrado: {user.email}")
 
-                codigo_verificacion = _generate_verification_code()
+                codigo_verificacion = _session.generate_verification_code()
                 request.session.update({
                     'codigo_verificacion': codigo_verificacion,
                     'user_id_temp': user.id,
@@ -159,10 +117,8 @@ Tu código de verificación es: {codigo_verificacion}
 Este código es válido por 10 minutos.
 
 Si no solicitaste esta cuenta, puedes ignorar este mensaje.
-
 ¡Gracias por unirte a nosotros!
-
-Equipo de BookieWookie
+Equipo de BookieWookie.
                 """.strip()
 
                 if _send_email(subject, message, user.email):
@@ -191,10 +147,8 @@ Equipo de BookieWookie
         else:
             _handle_form_errors(request, form)
             logger.warning(f"Formulario de registro inválido: {form.errors}")
-
     else:
         form = CustomUserCreationForm()
-
     return render(request, 'register.html', {'form': form})
 
 
@@ -262,179 +216,6 @@ def logout_view(request):
     return redirect('home')
 
 
-@login_required
-def book_search_view(request):
-    """
-    Book search page with results from Google Books and Amazon.
-    """
-    from core.api.google_books import GoogleBooksAPI
-    from core.api.amazon_books import AmazonBooksAPI
-
-    user = request.user
-    search_query = request.GET.get('search', '').strip()
-    all_books = []
-    google_error = None
-    amazon_error = None
-
-    if search_query:
-        # Search in Google Books
-        google_api = GoogleBooksAPI()
-        google_result = google_api.fetch_book_details(search_query)
-
-        if isinstance(google_result, dict) and 'error' in google_result:
-            google_error = google_result['error']
-        elif isinstance(google_result, list):
-            for book in google_result:
-                book['source'] = 'Google Books'
-                book['book_id'] = book.get('previewLink', '').split(
-                    'id=')[-1] if 'previewLink' in book else ''
-                all_books.append(book)
-
-        # Search in Amazon
-        amazon_api = AmazonBooksAPI()
-        amazon_result = amazon_api.fetch_book_details(
-            search_query, max_results=10)
-
-        if isinstance(amazon_result, dict) and 'error' in amazon_result:
-            amazon_error = amazon_result['error']
-        elif isinstance(amazon_result, list):
-            for book in amazon_result:
-                book['source'] = 'Amazon'
-                book['book_id'] = book.get('url', '').split(
-                    '/')[-1] if 'url' in book else ''
-                all_books.append(book)
-
-    intereses_list = user.get_intereses_list()
-
-    # If there's a search query, redirect to search page
-    search_query = request.GET.get('search', '').strip()
-    if search_query:
-        return redirect(f'/auth/libros/buscar/?search={search_query}')
-
-    context = {
-        'user': user,
-        'search_query': search_query,
-        'books': all_books,
-        'total_results': len(all_books),
-        'google_error': google_error,
-        'amazon_error': amazon_error,
-        'has_results': bool(all_books),
-    }
-
-    return render(request, 'book_search.html', context)
-
-
-@login_required
-def book_detail_view(request, book_id):
-    """
-    Book detail page - shows basic book information.
-    """
-    # For now, we'll just show the title from the query parameter
-    book_title = request.GET.get('title', 'Libro sin título')
-    book_author = request.GET.get('author', 'Autor desconocido')
-    book_source = request.GET.get('source', 'Fuente desconocida')
-    book_thumbnail = request.GET.get('thumbnail', '')
-    book_price = request.GET.get('price', 'N/A')
-
-    context = {
-        'user': request.user,
-        'book': {
-            'id': book_id,
-            'title': book_title,
-            'authors': [book_author] if book_author != 'Autor desconocido' else [],
-            'source': book_source,
-            'thumbnail': book_thumbnail,
-            'price': book_price,
-        }
-    }
-
-    return render(request, 'book_detail.html', context)
-
-    return render(request, 'dashboard.html', context)
-
-
-@login_required
-def book_search_view(request):
-    """
-    Book search page with results from Google Books and Amazon.
-    """
-    from core.api.google_books import GoogleBooksAPI
-    from core.api.amazon_books import AmazonBooksAPI
-
-    user = request.user
-    search_query = request.GET.get('search', '').strip()
-    all_books = []
-    google_error = None
-    amazon_error = None
-
-    if search_query:
-        # Search in Google Books
-        google_api = GoogleBooksAPI()
-        google_result = google_api.fetch_book_details(search_query)
-
-        if isinstance(google_result, dict) and 'error' in google_result:
-            google_error = google_result['error']
-        elif isinstance(google_result, list):
-            for book in google_result:
-                book['source'] = 'Google Books'
-                book['book_id'] = book.get('previewLink', '').split(
-                    'id=')[-1] if 'previewLink' in book else ''
-                all_books.append(book)
-
-        # Search in Amazon
-        amazon_api = AmazonBooksAPI()
-        amazon_result = amazon_api.fetch_book_details(
-            search_query, max_results=10)
-
-        if isinstance(amazon_result, dict) and 'error' in amazon_result:
-            amazon_error = amazon_result['error']
-        elif isinstance(amazon_result, list):
-            for book in amazon_result:
-                book['source'] = 'Amazon'
-                book['book_id'] = book.get('url', '').split(
-                    '/')[-1] if 'url' in book else ''
-                all_books.append(book)
-
-    context = {
-        'user': user,
-        'search_query': search_query,
-        'books': all_books,
-        'total_results': len(all_books),
-        'google_error': google_error,
-        'amazon_error': amazon_error,
-        'has_results': bool(all_books),
-    }
-
-    return render(request, 'book_search.html', context)
-
-
-@login_required
-def book_detail_view(request, book_id):
-    """
-    Book detail page - shows basic book information.
-    """
-    # For now, we'll just show the title from the query parameter
-    book_title = request.GET.get('title', 'Libro sin título')
-    book_author = request.GET.get('author', 'Autor desconocido')
-    book_source = request.GET.get('source', 'Fuente desconocida')
-    book_thumbnail = request.GET.get('thumbnail', '')
-    book_price = request.GET.get('price', 'N/A')
-
-    context = {
-        'user': request.user,
-        'book': {
-            'id': book_id,
-            'title': book_title,
-            'authors': [book_author] if book_author != 'Autor desconocido' else [],
-            'source': book_source,
-            'thumbnail': book_thumbnail,
-            'price': book_price,
-        }
-    }
-
-    return render(request, 'book_detail.html', context)
-
-
 @csrf_protect
 def confirm_email_view(request):
     """Handle email confirmation with expiration and attempt limits."""
@@ -448,7 +229,7 @@ def confirm_email_view(request):
             return JsonResponse({'success': False, 'message': 'Has excedido el límite de reenvíos'})
 
         try:
-            nuevo_codigo = _generate_verification_code()
+            nuevo_codigo = _session.generate_verification_code()
             request.session.update({
                 'codigo_verificacion': nuevo_codigo,
                 'codigo_timestamp': timezone.now().isoformat(),
@@ -485,7 +266,7 @@ Equipo de BookieWookie
             request, 'No hay ningún proceso de verificación activo. Por favor regístrate nuevamente.')
         return redirect('register')
 
-    if _check_session_expiration(request, 'codigo_timestamp', 10):
+    if _session.check_session_expiration(request, 'codigo_timestamp', 10):
         user_id = request.session.get('user_id_temp')
         try:
             user = CustomUser.objects.get(id=user_id)
@@ -493,7 +274,7 @@ Equipo de BookieWookie
         except CustomUser.DoesNotExist:
             pass
 
-        _clean_session_data(
+        _session.clean_session_data(
             request, ['codigo_verificacion', 'user_id_temp', 'codigo_timestamp'])
         messages.error(
             request, 'El código de verificación ha expirado. Por favor regístrate nuevamente.')
@@ -515,7 +296,7 @@ Equipo de BookieWookie
             except CustomUser.DoesNotExist:
                 pass
 
-            _clean_session_data(request, [
+            _session.clean_session_data(request, [
                                 'codigo_verificacion', 'user_id_temp', 'verification_attempts', 'codigo_timestamp'])
             messages.error(request,
                            'Has excedido el número máximo de intentos. Por favor regístrate nuevamente.')
@@ -532,7 +313,7 @@ Equipo de BookieWookie
                 user.is_active = True
                 user.save()
 
-                _clean_session_data(request, [
+                _session.clean_session_data(request, [
                                     'codigo_verificacion', 'user_id_temp', 'verification_attempts', 'codigo_timestamp'])
 
                 login(request, user)
@@ -589,7 +370,7 @@ def forgot_password_view(request):
             email = form.cleaned_data['email']
             try:
                 user = CustomUser.objects.get(email=email, is_active=True)
-                codigo = _generate_verification_code()
+                codigo = _session.generate_verification_code()
 
                 request.session.update({
                     'reset_email': email,
@@ -642,8 +423,8 @@ def verify_reset_code_view(request):
             request, 'Sesión expirada. Por favor solicita un nuevo código.')
         return redirect('forgot_password')
 
-    if _check_session_expiration(request, 'reset_timestamp', 10):
-        _clean_session_data(
+    if _session.check_session_expiration(request, 'reset_timestamp', 10):
+        _session.clean_session_data(
             request, ['reset_email', 'reset_code', 'reset_timestamp'])
         messages.error(
             request, 'El código ha expirado. Por favor solicita uno nuevo.')
@@ -691,7 +472,7 @@ def reset_password_view(request):
                 user.set_password(form.cleaned_data['new_password'])
                 user.save()
 
-                _clean_session_data(
+                _session.clean_session_data(
                     request, ['reset_email', 'reset_code', 'reset_timestamp'])
 
                 logger.info(

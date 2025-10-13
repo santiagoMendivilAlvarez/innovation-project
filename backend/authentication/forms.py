@@ -8,30 +8,27 @@ import json
 
 
 class CustomUserCreationForm(UserCreationForm):
-    """
-    User creation form with all fields.
-    """
-    
     email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput(attrs={
-            'class': 'form-control',
+        required  = True,
+        label     = "Correo electrónico *",
+        help_text = "Email único que usarás para iniciar sesión",
+        widget    = forms.EmailInput(attrs={
+            'class'      : 'form-control',
             'placeholder': 'correo@ejemplo.com'
         }),
-        label="Correo electrónico *",
-        help_text="Email único que usarás para iniciar sesión"
     )
     
     nombre_completo = forms.CharField(
-        max_length=100,
-        min_length=2,
-        required=True,
+        max_length = 100,
+        min_length = 2,
+        required   = True,
+        label      = "Nombre completo *",
+        help_text="Mínimo 2 caracteres, solo letras y espacios",
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Ingresa tu nombre completo'
         }),
-        label="Nombre completo *",
-        help_text="Mínimo 2 caracteres, solo letras y espacios"
+        
     )
     
     password1 = forms.CharField(
@@ -197,17 +194,12 @@ class CustomUserCreationForm(UserCreationForm):
         user.nombre_completo = self.cleaned_data['nombre_completo']
         user.universidad = self.cleaned_data['universidad']
         user.nivel_academico = self.cleaned_data['nivel_academico']
-        user.carrera = self.cleaned_data['carrera'].strip()
-        
-        
+        user.carrera = self.cleaned_data['carrera'].strip() 
         intereses_list = self.cleaned_data.get('intereses_usuario', [])
         user.intereses_usuario = json.dumps(intereses_list)
-        
         if not user.username:
             user.username = user.email.split('@')[0]
-        
         user.is_active = False
-        
         if commit:
             user.save()
         return user
