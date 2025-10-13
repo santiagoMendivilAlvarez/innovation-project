@@ -823,6 +823,22 @@ body.menu-open {
     border-left: 4px solid #17a2b8;
 }
 
+.info-text {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.info-text strong {
+    color: #1976d2;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-top: 8px;
+}
+
 .messages-container {
     margin-bottom: 20px;
     max-width: 800px;
@@ -866,6 +882,13 @@ body.menu-open {
     max-width: 500px;
     margin: 80px auto;
     padding: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
 .card-header {
@@ -998,6 +1021,21 @@ select.form-control {
 
 .interest-item.selected input[type="checkbox"] {
     accent-color: white;
+}
+
+.requirements {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+    border-left: 4px solid #1976d2;
+}
+
+.requirements ul {
+    margin: 5px 0;
+    padding-left: 20px;
 }
 
 @media (max-width: 1100px) {

@@ -1,11 +1,9 @@
 """
 Views for the authentication app with strict validation and security.
 """
-import random
-import string
 import json
 import logging
-from datetime                       import timedelta
+from typing import Any
 from django.shortcuts               import render, redirect
 from django.contrib.auth            import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -13,7 +11,7 @@ from django.contrib                 import messages
 from django.core.mail               import send_mail
 from django.conf                    import settings
 from django.utils.crypto            import get_random_string
-from django.http                    import JsonResponse
+from django.http                    import JsonResponse, HttpRequest
 from django.views.decorators.http   import require_http_methods
 from django.views.decorators.csrf   import csrf_protect
 from django.core.exceptions         import ValidationError
@@ -27,8 +25,18 @@ _session = SessionSubsystem()
 logger = logging.getLogger(__name__)
 
 
-def _send_email(subject, message, recipient_email):
-    """Send email with error handling."""
+def _send_email(subject: str, message: str, recipient_email: str) -> bool:
+    """
+    Functionality to send an email to a person.
+
+    Args:
+        subject (str): The subject that the email is being sent for. 
+        message (str): The messages that will be sent in the email. 
+        recipient_email (str): The person that the email is being sent to.
+
+    Returns:
+        bool: The result of the email sending action.
+    """
     try:
         send_mail(
             subject,
@@ -43,9 +51,13 @@ def _send_email(subject, message, recipient_email):
         return False
 
 
-def _handle_form_errors(request, form):
+def _handle_form_errors(request: HttpRequest, form: Any) -> None:
     """
-    Helper: Form error handling messages.
+    Method to handle any error that occurs during processing a form.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+        form (Any): The form used to check if there are any errors. 
     """
     for field, errors in form.errors.items():
         for error in errors:
@@ -62,11 +74,11 @@ def _handle_form_errors(request, form):
                 field_label = form.fields[field].label or field
                 messages.error(request, f"{field_label}: {error}")
 
-def register_view(request):
+
+def register_view(request: HttpRequest):
     """Handle user registration with strict validation."""
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
-
         if form.is_valid():
             if 'user_id_temp' in request.session:
                 user_id = request.session.get('user_id_temp')
@@ -94,21 +106,14 @@ def register_view(request):
 
                 subject = 'Verificación de cuenta - BookieWookie'
                 message = f"""
-Hola {user.nombre_completo},
-
-¡Bienvenido a BookieWookie! 
-
-Para completar tu registro y activar tu cuenta, necesitamos verificar tu dirección de email.
-
-Tu código de verificación es: {codigo_verificacion}
-
-Este código es válido por 10 minutos.
-
-Si no solicitaste esta cuenta, puedes ignorar este mensaje.
-
-¡Gracias por unirte a nosotros!
-
-Equipo de BookieWookie
+                    Hola {user.nombre_completo},
+                    ¡Bienvenido a BookieWookie! 
+                    Para completar tu registro y activar tu cuenta, necesitamos verificar tu dirección de email.
+                    Tu código de verificación es: {codigo_verificacion}
+                    Este código es válido por 10 minutos.
+                    Si no solicitaste esta cuenta, puedes ignorar este mensaje.
+                    ¡Gracias por unirte a nosotros!
+                    Equipo de BookieWookie
                 """.strip()
 
                 if _send_email(subject, message, user.email):
@@ -137,10 +142,8 @@ Equipo de BookieWookie
         else:
             _handle_form_errors(request, form)
             logger.warning(f"Formulario de registro inválido: {form.errors}")
-
     else:
         form = CustomUserCreationForm()
-
     return render(request, 'register.html', {'form': form})
 
 
