@@ -9,7 +9,7 @@
             <a href="{% url 'recomendaciones' %}" {% if request.resolver_match.url_name == 'recomendaciones' %}class="active"{% endif %}>
                 Recomendaciones
             </a>
-            <a href="{% url 'explorar_libros' %}" {% if request.resolver_match.url_name == 'explorar_libros' %}class="active"{% endif %}>
+            <a href="{% url 'libros' %}" {% if request.resolver_match.url_name == 'libros' %}class="active"{% endif %}>
                 Explorar libros
             </a>
             <a href="{% url 'mi_biblioteca' %}" {% if request.resolver_match.url_name == 'mi_biblioteca' %}class="active"{% endif %}>
@@ -149,7 +149,7 @@
         <div class="nav-links">
             <a href="{% url 'libros' %}">Inicio</a>
             <a href="{% url 'recomendaciones' %}">Recomendaciones</a>
-            <a href="{% url 'explorar_libros' %}">Explorar libros</a>
+            <a href="{% url 'libros' %}">Explorar libros</a>
             <a href="{% url 'mi_biblioteca' %}">Mi Biblioteca</a>
             <a href="#perfil">Mi Perfil</a>
             <a href="#configuracion">Configuración</a>
