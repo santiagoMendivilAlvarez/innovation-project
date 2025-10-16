@@ -1,9 +1,9 @@
 <nav class="navbar">
     <div class="navbar-left">
-        <a href="{% url 'libros' %}" class="logo">BookieWookie</a>
+        <a href="{% url 'home' %}" class="logo">BookieWookie</a>
         
         <div class="nav-links">
-            <a href="{% url 'libros' %}" {% if request.resolver_match.url_name == 'libros' %}class="active"{% endif %}>
+            <a href="{% url 'home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>
                 Inicio
             </a>
             <a href="{% url 'recomendaciones' %}" {% if request.resolver_match.url_name == 'recomendaciones' %}class="active"{% endif %}>
@@ -57,11 +57,7 @@
             <div class="dropdown-header">
                 <div class="dropdown-user-info">
                     <h4>
-                        {% if user.nombre_completo %}
-                            {{ user.nombre_completo }}
-                        {% else %}
-                            Usuario
-                        {% endif %}
+                        {% if user.nombre_completo %}{{ user.nombre_completo }}{% else %}Usuario{% endif %}
                     </h4>
                     <p>{{ user.email }}</p>
                     <p style="margin-top: 0.25rem; font-size: 0.8rem;">
@@ -81,11 +77,7 @@
                 <div class="dropdown-user-stats">
                     <div class="stat-item">
                         <span class="stat-number">
-                            {% if user.libros_leidos %}
-                                {{ user.libros_leidos }}
-                            {% else %}
-                                0
-                            {% endif %}
+                            {{ user.favoritos.count|default:"0" }}
                         </span>
                         <div class="stat-label">Libros comprados</div>
                     </div>
@@ -101,11 +93,7 @@
                     </div>
                     <div class="stat-item">
                         <span class="stat-number">
-                            {% if user.recomendaciones %}
-                                {{ user.recomendaciones }}
-                            {% else %}
-                                0
-                            {% endif %}
+                            {{ user.recomendaciones.count|default:"0" }}
                         </span>
                         <div class="stat-label">Recomendaciones</div>
                     </div>
@@ -147,7 +135,7 @@
             </form>
         </div>
         <div class="nav-links">
-            <a href="{% url 'libros' %}">Inicio</a>
+            <a href="{% url 'home' %}">Inicio</a>
             <a href="{% url 'recomendaciones' %}">Recomendaciones</a>
             <a href="{% url 'libros' %}">Explorar libros</a>
             <a href="{% url 'mi_biblioteca' %}">Mi Biblioteca</a>
@@ -157,3 +145,25 @@
         </div>
     </div>
 </nav>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const userMenuToggle = document.getElementById('userMenuToggle');
+    const userDropdown = document.getElementById('userDropdown');
+
+    if (userMenuToggle && userDropdown) {
+        userMenuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userDropdown.classList.toggle('show');
+            userMenuToggle.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!userMenuToggle.contains(event.target) && !userDropdown.contains(event.target)) {
+                userDropdown.classList.remove('show');
+                userMenuToggle.classList.remove('active');
+            }
+        });
+    }
+});
+</script>

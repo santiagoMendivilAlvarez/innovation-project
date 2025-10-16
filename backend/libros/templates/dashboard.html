@@ -110,8 +110,8 @@
             Únete a miles de lectores que ya están ahorrando en sus libros favoritos
         </p>
         <div class="cta-buttons">
-            <a href="/register/" class="btn btn-white">Registrarse</a>
-            <a href="/login/" class="btn btn-transparent">Iniciar Sesión</a>
+            <a href="{% url 'register' %}" class="btn btn-filled">Registrarse</a>
+            <a href="{% url 'login' %}" class="btn btn-filled">Iniciar Sesión</a>
         </div>
     </div>
     {% endif %}
