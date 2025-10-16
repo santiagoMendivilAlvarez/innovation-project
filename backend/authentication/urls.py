@@ -25,5 +25,4 @@ urlpatterns = [
     path('api/user-data/', views.user_data_api, name='user_data_api'),
     path('api/update-intereses/', views.update_intereses_api,
          name='update_intereses_api'),
-    #path('libros/', include("libros.urls")),
 ]
