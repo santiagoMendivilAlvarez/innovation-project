@@ -13,7 +13,7 @@
             compres libros al mejor precio disponible en el mercado.
         </p>
         
-         <div class="search-section">
+        <div class="search-section">
              <form class="search-form" method="GET" action="{% url 'book_search' %}" id="dashboardSearchForm">
                  <div class="search-input-container">
                      <input type="text" class="search-input-text" placeholder="¿Qué libro estás buscando?" name="search" value="{{ request.GET.search|default:'' }}" required>
@@ -120,17 +120,5 @@
  {% include 'chatbot.html' %}
  {% endif %}
  
- 
- <script>
- document.addEventListener('DOMContentLoaded', function() {
-     const searchForm = document.getElementById('dashboardSearchForm');
-     if (searchForm) {
-         searchForm.addEventListener('submit', function(e) {
-             if (this.method.toLowerCase() !== 'get') {
-                 this.method = 'GET';
-             }
-         });
-     }
- });
- </script>
+
  {% endblock %}
