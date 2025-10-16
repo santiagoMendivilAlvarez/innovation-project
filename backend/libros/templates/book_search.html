@@ -357,51 +357,61 @@
                     <div class="info-message">
                         {{ google_results.error }}
                     </div>
-                {% elif google_results.title %}
+                {% elif google_results.books %}
                     <div class="libros-grid">
+                        {% for book in google_results.books %}
                         <div class="libro-card google">
-                            {% if google_results.thumbnail %}
-                                <img src="{{ google_results.thumbnail }}" alt="{{ google_results.title }}" class="book-image">
+                            {% if book.thumbnail %}
+                                <img src="{{ book.thumbnail }}" alt="{{ book.title }}" class="book-image">
                             {% endif %}
-                            
-                            <div class="libro-titulo">{{ google_results.title }}</div>
-                            
-                            {% if google_results.authors %}
+
+                            <div class="libro-titulo">{{ book.title }}</div>
+
+                            {% if book.authors %}
                                 <div class="libro-info">
-                                    <strong>Autor(es):</strong> {{ google_results.authors|join:", " }}
+                                    <strong>Autor(es):</strong> {{ book.authors|join:", " }}
                                 </div>
                             {% endif %}
-                            
-                            {% if google_results.publisher %}
+
+                            {% if book.publisher %}
                                 <div class="libro-info">
-                                    <strong>Editorial:</strong> {{ google_results.publisher }}
+                                    <strong>Editorial:</strong> {{ book.publisher }}
                                 </div>
                             {% endif %}
-                            
-                            {% if google_results.publishedDate %}
+
+                            {% if book.publishedDate %}
                                 <div class="libro-info">
-                                    <strong>Fecha:</strong> {{ google_results.publishedDate }}
+                                    <strong>Fecha:</strong> {{ book.publishedDate }}
                                 </div>
                             {% endif %}
-                            
-                            {% if google_results.pageCount %}
+
+                            {% if book.pageCount %}
                                 <div class="libro-info">
-                                    <strong>Páginas:</strong> {{ google_results.pageCount }}
+                                    <strong>Páginas:</strong> {{ book.pageCount }}
                                 </div>
                             {% endif %}
-                            
-                            {% if google_results.categories %}
+
+                            {% if book.categories %}
                                 <div class="libro-info">
-                                    <strong>Categorías:</strong> {{ google_results.categories|join:", " }}
+                                    <strong>Categorías:</strong> {{ book.categories|join:", " }}
                                 </div>
                             {% endif %}
-                            
-                            {% if google_results.description %}
+
+                            {% if book.description %}
                                 <div class="libro-descripcion">
-                                    {{ google_results.description|truncatewords:40 }}
+                                    {{ book.description|truncatewords:40 }}
+                                </div>
+                            {% endif %}
+
+                            {% if book.previewLink %}
+                                <div class="libro-acciones">
+                                    <a href="{{ book.previewLink }}" target="_blank" class="btn btn-info">
+                                        Ver en Google Books
+                                    </a>
                                 </div>
                             {% endif %}
                         </div>
+                        {% endfor %}
                     </div>
                 {% endif %}
             </div>

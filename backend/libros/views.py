@@ -82,22 +82,27 @@ def book_search(request):
             # Search Google Books
             if source in ['google', 'all']:
                 google_result = google_api.fetch_book_details(query)
-                context['google_results'] = google_result
-                
-                # Add Google book to combined results if found
-                if google_result and 'error' not in google_result and google_result.get('title', 'N/A') != 'N/A':
-                    combined_book = {
-                        'source': 'google',
-                        'title': google_result.get('title', 'N/A'),
-                        'authors': google_result.get('authors', []),
-                        'description': google_result.get('description', 'N/A'),
-                        'thumbnail': google_result.get('thumbnail', ''),
-                        'publisher': google_result.get('publisher', 'N/A'),
-                        'published_date': google_result.get('publishedDate', 'N/A'),
-                        'page_count': google_result.get('pageCount', 'N/A'),
-                        'categories': google_result.get('categories', [])
-                    }
-                    context['combined_results'].append(combined_book)
+
+                # Check if it's an error dict or a list of books
+                if isinstance(google_result, dict) and 'error' in google_result:
+                    context['google_results'] = google_result
+                elif isinstance(google_result, list):
+                    context['google_results'] = {'books': google_result}
+                    # Add Google books to combined results
+                    for book in google_result:
+                        combined_book = {
+                            'source': 'google',
+                            'title': book.get('title', 'N/A'),
+                            'authors': book.get('authors', []),
+                            'description': book.get('description', 'N/A'),
+                            'thumbnail': book.get('thumbnail', ''),
+                            'publisher': book.get('publisher', 'N/A'),
+                            'published_date': book.get('publishedDate', 'N/A'),
+                            'page_count': book.get('pageCount', 'N/A'),
+                            'categories': book.get('categories', []),
+                            'previewLink': book.get('previewLink', '#')
+                        }
+                        context['combined_results'].append(combined_book)
             
             # Search Amazon (fallback to sample data if API fails)
             if source in ['amazon', 'all']:
@@ -156,24 +161,19 @@ def book_search_view(request):
 
         # Search in Amazon
         amazon_api = AmazonBooksAPI()
-        amazon_result = amazon_api.fetch_book_details(
+        amazon_result = amazon_api.search_books(
             search_query, max_results=10)
 
         if isinstance(amazon_result, dict) and 'error' in amazon_result:
             amazon_error = amazon_result['error']
-        elif isinstance(amazon_result, list):
-            for book in amazon_result:
+        elif isinstance(amazon_result, dict) and 'books' in amazon_result:
+            for book in amazon_result['books']:
                 book['source'] = 'Amazon'
-                book['book_id'] = book.get('url', '').split(
-                    '/')[-1] if 'url' in book else ''
+                book['book_id'] = book.get('amazon_url', '').split(
+                    '/')[-1] if 'amazon_url' in book else ''
                 all_books.append(book)
 
     intereses_list = user.get_intereses_list()
-
-    # If there's a search query, redirect to search page
-    search_query = request.GET.get('search', '').strip()
-    if search_query:
-        return redirect(f'/auth/libros/buscar/?search={search_query}')
 
     context = {
         'user': user,
