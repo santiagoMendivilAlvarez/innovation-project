@@ -8,7 +8,7 @@ from .models                        import Libro
 from django.http                    import HttpResponse, JsonResponse, HttpRequest
 from django.views.decorators.http   import require_http_methods
 from django.contrib.auth.decorators import login_required
-from django.db.models               import QuerySet
+from django.db.models               import QuerySet, Q
 from libros.models                  import Libro
 from core.api.google_books          import GoogleBooksAPI
 from core.api.amazon_books          import AmazonBooksAPI, AmazonBooksAPIAlternative
@@ -46,21 +46,18 @@ def home_view(request: HttpRequest) -> HttpResponse:
     """
     context = {}
     if request.user.is_authenticated:
-        user           = request.user
-        intereses_list = user.get_intereses_list()
-        search_query   = request.GET.get('search', '').strip()
-        last_ten_books = Libro.objects.order_by('-fecha_creacion')[:10]
-        if search_query:
-            return redirect(f'book_search?search={search_query}') # @todo: This must search the books in another view.
-        context = {
-            'user'             : user,
-            'intereses'        : intereses_list,
-            'intereses_display': user.get_intereses_display(),
-            'total_intereses'  : len(intereses_list),
-            'email_verified'   : user.email_verificado,
-            'last_ten_books'   : last_ten_books
-        }
-
+        context.update({
+            'intereses': request.user.get_intereses_list(),
+            'total_intereses': len(request.user.get_intereses_list()),
+            'intereses_display': request.user.get_intereses_display(),
+            'email_verified': request.user.email_verificado
+        })
+    last_ten_books = Libro.objects.all().order_by('-fecha_creacion')[:10]
+    
+    context.update({
+        'user': request.user,
+        'last_ten_books': last_ten_books
+    })
     return render(request, 'dashboard.html', context)
 
 
@@ -134,31 +131,53 @@ def book_search(request):
 @login_required
 def book_search_view(request):
     """
-    Book search page with results from Google Books and Amazon.
+    Book search: database first, then Google Books and Amazon APIs.
     """
     from core.api.google_books import GoogleBooksAPI
     from core.api.amazon_books import AmazonBooksAPI
-
-    user = request.user
+    # user = request.user
     search_query = request.GET.get('search', '').strip()
+    
     all_books = []
+    db_books = []
     google_error = None
     amazon_error = None
 
     if search_query:
-        # Search in Google Books
-        google_api = GoogleBooksAPI()
-        google_result = google_api.fetch_book_details(search_query)
+        db_books = Libro.objects.filter(
+            Q(titulo__icontains=search_query) |
+            Q(autor__icontains=search_query) |
+            Q(isbn__icontains=search_query)
+        ).order_by('-fecha_creacion')
 
-        if isinstance(google_result, dict) and 'error' in google_result:
-            google_error = google_result['error']
-        elif isinstance(google_result, list):
-            for book in google_result:
-                book['source'] = 'Google Books'
-                book['book_id'] = book.get('previewLink', '').split(
-                    'id=')[-1] if 'previewLink' in book else ''
-                all_books.append(book)
+        for book in db_books:
+            all_books.append({
+                'source': 'Database',
+                'book_id': book.id,
+                'title': book.titulo,
+                'authors': [book.autor] if book.autor else [],
+                'description': book.descripcion,
+                'thumbnail': book.imagen_portada.url if book.imagen_portada else '',
+                'isbn': book.isbn,
+                'is_local': True, 
+                'book_object': book 
+            })
 
+        if not db_books:
+            google_api = GoogleBooksAPI()
+            google_result = google_api.fetch_book_details(search_query)
+
+            if isinstance(google_result, dict) and 'error' in google_result:
+                google_error = google_result['error']
+            elif isinstance(google_result, list):
+                for book in google_result:
+                    book['source'] = 'Google Books'
+                    book['is_local'] = False
+                    all_books.append(book)
+
+        if not db_books and not all_books:
+            amazon_api = AmazonBooksAPI()
+            amazon_result = amazon_api.fetch_book_details(search_query, max_results=10)
         # Search in Amazon
         amazon_api = AmazonBooksAPI()
         amazon_result = amazon_api.search_books(
@@ -176,10 +195,10 @@ def book_search_view(request):
     intereses_list = user.get_intereses_list()
 
     context = {
-        'user': user,
         'search_query': search_query,
         'books': all_books,
         'total_results': len(all_books),
+        'db_results': len(db_books),
         'google_error': google_error,
         'amazon_error': amazon_error,
         'has_results': bool(all_books),
@@ -263,7 +282,6 @@ def amazon_book_details(request, asin):
     return render(request, 'amazon_book_details.html', context)
 
 
-@login_required
 def book_detail_view(request, book_id):
     """
     Book detail page - shows basic book information.
