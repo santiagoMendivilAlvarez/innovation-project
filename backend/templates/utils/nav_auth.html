@@ -1,3 +1,4 @@
+{% load static %}
 <nav class="navbar">
     <div class="navbar-left">
         <a href="{% url 'home' %}" class="logo">BookieWookie</a>
@@ -32,7 +33,7 @@
     </div>
 
     <div class="navbar-right">
-        <div class="user-menu" id="userMenuToggle" role="button" tabindex="0" aria-label="Menú de usuario" title="Abrir menú de usuario">
+        <button class="user-menu" id="userMenuToggle" aria-label="Menú de usuario" title="Abrir menú de usuario" type="button">           
             <div class="user-avatar">
                 {% if user.nombre_completo %}
                     {{ user.nombre_completo|first|upper }}
@@ -51,8 +52,8 @@
                 <div class="user-email">{{ user.email|truncatechars:25 }}</div>
             </div>
             <span class="dropdown-arrow" aria-hidden="true">▼</span>
-        </div>
-
+        </button>
+        
         <div class="user-dropdown" id="userDropdown">
             <div class="dropdown-header">
                 <div class="dropdown-user-info">
@@ -77,17 +78,13 @@
                 <div class="dropdown-user-stats">
                     <div class="stat-item">
                         <span class="stat-number">
-                            {{ user.favoritos.count|default:"0" }}
+                            {{ user.libros_comprados.count|default:"0" }}
                         </span>
                         <div class="stat-label">Libros comprados</div>
                     </div>
                     <div class="stat-item">
                         <span class="stat-number">
-                            {% if user.favoritos %}
-                                {{ user.favoritos }}
-                            {% else %}
-                                0
-                            {% endif %}
+                            {{ user.favoritos.count|default:"0" }}
                         </span>
                         <div class="stat-label">Favoritos</div>
                     </div>
@@ -99,7 +96,7 @@
                     </div>
                 </div>
             </div>
-            
+        
             <div class="dropdown-menu">
                 <a href="#perfil" class="dropdown-item">
                     <span class="dropdown-item-icon">👤</span>
@@ -144,26 +141,5 @@
             <a href="{% url 'logout' %}" style="color: #ffcdd2;">Cerrar Sesión</a>
         </div>
     </div>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
 </nav>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const userMenuToggle = document.getElementById('userMenuToggle');
-    const userDropdown = document.getElementById('userDropdown');
-
-    if (userMenuToggle && userDropdown) {
-        userMenuToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            userDropdown.classList.toggle('show');
-            userMenuToggle.classList.toggle('active');
-        });
-
-        document.addEventListener('click', function(event) {
-            if (!userMenuToggle.contains(event.target) && !userDropdown.contains(event.target)) {
-                userDropdown.classList.remove('show');
-                userMenuToggle.classList.remove('active');
-            }
-        });
-    }
-});
-</script>

@@ -1,4 +1,5 @@
 {% extends 'utils/base.html' %}
+{% load static %}
 {% block title %}Verificar Código - BookieWookie{% endblock %}
 
 {% block content %}
@@ -39,8 +40,9 @@
                            autocomplete="one-time-code"
                            required>
                 </div>
-                
-                <button type="submit" class="btn btn-primary">Verificar Código</button>
+                <div style="display: flex; justify-content: center;">
+                    <button type="submit" class="btn btn-primary">Verificar Código</button>
+                </div>
             </form>
             
             <div class="back-link">
@@ -49,21 +51,4 @@
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const codigoInput = document.getElementById('codigo');
-    codigoInput.focus();
-    
-    codigoInput.addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '');
-        
-        if (this.value.length === 6) {
-            setTimeout(function() {
-                document.querySelector('form').submit();
-            }, 300);
-        }
-    });
-});
-</script>
 {% endblock %}
