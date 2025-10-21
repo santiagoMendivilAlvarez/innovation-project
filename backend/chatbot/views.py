@@ -46,10 +46,27 @@ def chat_message(request):
         if len(conversation_history) > 20:
             conversation_history = conversation_history[-20:]
 
+        # Get user information for context
+        user = request.user
+        user_info = f"\n\nContexto del usuario:\n- Nombre: {user.get_full_name() or user.username}\n- Email: {user.email}"
+
+        # Get user's recent book searches or favorites if available
+        try:
+            from libros.models import Libro
+            # Try to get user's recently viewed or searched books
+            # This is just an example - adjust based on your actual models
+            user_context_extra = ""
+            # You can add more context here like:
+            # - User's favorite genres
+            # - Recently searched books
+            # - User's reading preferences
+        except Exception:
+            user_context_extra = ""
+
         # System prompt for the chatbot
         system_message = {
             'role': 'system',
-            'content': '''Eres un asistente virtual amigable y útil de BookieWookie, una plataforma de búsqueda y comparación de libros.
+            'content': f'''Eres un asistente virtual amigable y útil de BookieWookie, una plataforma de búsqueda y comparación de libros.
 
 Tu rol es ayudar a los usuarios a:
 - Encontrar libros por título, autor, género o tema
@@ -63,8 +80,9 @@ Características importantes:
 - Si el usuario busca un libro específico, pregunta detalles como género, autor o tema de interés
 - Menciona que BookieWookie compara precios en Google Books y Amazon
 - Si no sabes algo específico de la plataforma, sugiere al usuario explorar la sección correspondiente
+{user_info}
 
-Mantén un tono amigable, profesional y entusiasta sobre los libros.'''
+Mantén un tono amigable, profesional y entusiasta sobre los libros. Puedes usar el nombre del usuario de manera ocasional para hacer la conversación más personal.'''
         }
 
         # Prepare messages for OpenAI API
