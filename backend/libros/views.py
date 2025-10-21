@@ -446,3 +446,9 @@ def api_libros_categoria(request: HttpRequest) -> JsonResponse:
         'total_libros': libros.count(),
         'libros': list(libros)
     })
+
+
+@login_required
+def recomendaciones_view(request):
+    return render(request, 'recomendaciones.html')
+

@@ -3,6 +3,7 @@ Views for the authentication app with strict validation and security.
 """
 import json
 import logging
+import smtplib
 from typing import Any
 from django.shortcuts               import render, redirect
 from django.contrib.auth            import authenticate, login, logout
@@ -16,9 +17,10 @@ from django.views.decorators.http   import require_http_methods
 from django.views.decorators.csrf   import csrf_protect
 from django.core.exceptions         import ValidationError
 from django.utils                   import timezone
-from .forms                         import CustomUserCreationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
-from .models                        import CustomUser
 from core.sessions.session          import SessionSubsystem
+from .forms                         import (CustomUserCreationForm, LoginForm,
+                                            ForgotPasswordForm, ResetPasswordForm)
+from .models                        import CustomUser
 _session = SessionSubsystem()
 
 
@@ -46,7 +48,7 @@ def _send_email(subject: str, message: str, recipient_email: str) -> bool:
             fail_silently=False,
         )
         return True
-    except Exception as e:
+    except smtplib.SMTPException as e:
         logger.error("Error enviando email a %s: %s", recipient_email, str(e))
         return False
 
@@ -571,23 +573,3 @@ def update_intereses_api(request):
     except Exception as e:
         logger.error(f"Error actualizando intereses: {str(e)}")
         return JsonResponse({'success': False, 'message': 'Error actualizando intereses'})
-
-
-@login_required
-def recomendaciones_view(request):
-    """Vista para mostrar recomendaciones personalizadas de libros"""
-    user = request.user
-    context = {
-        'user': user,
-    }
-    return render(request, 'recomendaciones.html', context)
-
-
-@login_required
-def mi_biblioteca_view(request):
-    """Vista para mostrar la biblioteca personal del usuario"""
-    user = request.user
-    context = {
-        'user': user,
-    }
-    return render(request, 'mi_biblioteca.html', context)
