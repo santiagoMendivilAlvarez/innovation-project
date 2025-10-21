@@ -212,3 +212,33 @@ class Resena(models.Model):
 
     def __str__(self: 'Resena') -> str:
         return f"Reseña de {self.autor_resena} para {self.libro.titulo}"
+
+def crear_categorias_por_defecto():
+    """Create default categories if they do not exist."""
+    categorias = [
+        ('Ciencia y Tecnología', 'Libros sobre ciencia, tecnología e innovación'),
+        ('Literatura', 'Novelas y obras literarias'),
+        ('Historia', 'Libros históricos y biografías'),
+        ('Psicología', 'Libros de psicología y comportamiento'),
+        ('Filosofía', 'Obras filosóficas y pensamiento'),
+        ('Matemáticas', 'Libros de matemáticas'),
+        ('Arte y Diseño', 'Libros de arte, diseño y creatividad'),
+        ('Negocios', 'Libros de negocios y emprendimiento'),
+    ]
+    
+    for nombre, descripcion in categorias:
+        Categoria.objects.get_or_create(
+            nombre=nombre,
+            defaults={'descripcion': descripcion, 'activa': True}
+        )
+
+"""
+Signals to handle post-migration actions.
+"""
+from django.db.models.signals import post_migrate
+from django.dispatch import receiver
+
+@receiver(post_migrate)
+def ejecutar_despues_migracion(sender, **kwargs):
+    if sender.name == 'libros':
+        crear_categorias_por_defecto()
