@@ -662,9 +662,42 @@ Puedo ayudarte a:
             this.isTyping = false;
         }
 
-        getBotResponse(userMessage) {
+        async getBotResponse(userMessage) {
+            // Send message to OpenAI via Django backend
+            try {
+                const csrftoken = document.querySelector('[name=csrf_token]')?.content ||
+                                document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+                const response = await fetch('/chatbot/message/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ message: userMessage })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    return data.message;
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('Chat API Error:', error);
+                // Fallback to basic responses if API fails
+                return this.getFallbackResponse(userMessage);
+            }
+        }
+
+        getFallbackResponse(userMessage) {
             const message = userMessage.toLowerCase();
-            
+
             if (message.includes('precio') || message.includes('costo') || message.includes('barato')) {
                 return `¡Perfecto! Te ayudo a encontrar los mejores precios 💰
 
@@ -777,27 +810,31 @@ Solo dime el nombre del autor o qué tipo de escritor te interesa y te ayudo a e
             }
         }
 
-        sendMessage() {
+        async sendMessage() {
             const message = this.input.value.trim();
             if (!message) return;
-            
+
             this.send.disabled = true;
             this.input.disabled = true;
-            
+
             this.addMessage(message, true);
             this.input.value = '';
-            
+
             this.showTypingIndicator();
-            
-            setTimeout(() => {
+
+            try {
+                const response = await this.getBotResponse(message);
                 this.hideTypingIndicator();
-                const response = this.getBotResponse(message);
                 this.addMessage(response);
-                
+            } catch (error) {
+                this.hideTypingIndicator();
+                this.addMessage('Lo siento, hubo un error. Por favor intenta de nuevo.');
+                console.error('Send message error:', error);
+            } finally {
                 this.send.disabled = false;
                 this.input.disabled = false;
                 this.input.focus();
-            }, 1000 + Math.random() * 1000);
+            }
         }
     }
 

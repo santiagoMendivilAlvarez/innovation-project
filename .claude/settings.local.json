@@ -1,7 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -m py_compile:*)"
+      "Bash(\"c:\\Users\\Dani\\Desktop\\Inovacion\\innovation-project\\backend\\venv\\Scripts\\pip.exe\" install openai)"
     ],
     "deny": [],
     "ask": []

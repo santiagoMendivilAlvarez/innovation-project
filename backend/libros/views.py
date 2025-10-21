@@ -21,7 +21,7 @@ def books(request: HttpRequest) -> HttpResponse:
     """
     Display all books.
 
-    Args:
+    Args:s
         request (HttpRequest): The HTTP request object.
 
     Returns:
@@ -135,15 +135,17 @@ def book_search_view(request):
     """
     from core.api.google_books import GoogleBooksAPI
     from core.api.amazon_books import AmazonBooksAPI
-    # user = request.user
+
+    user = request.user
     search_query = request.GET.get('search', '').strip()
-    
+
     all_books = []
     db_books = []
     google_error = None
     amazon_error = None
 
     if search_query:
+        # Search in local database first
         db_books = Libro.objects.filter(
             Q(titulo__icontains=search_query) |
             Q(autor__icontains=search_query) |
@@ -159,11 +161,12 @@ def book_search_view(request):
                 'description': book.descripcion,
                 'thumbnail': book.imagen_portada.url if book.imagen_portada else '',
                 'isbn': book.isbn,
-                'is_local': True, 
-                'book_object': book 
+                'is_local': True,
+                'book_object': book
             })
 
-        if not db_books:
+        # Search in Google Books
+        try:
             google_api = GoogleBooksAPI()
             google_result = google_api.fetch_book_details(search_query)
 
@@ -171,28 +174,46 @@ def book_search_view(request):
                 google_error = google_result['error']
             elif isinstance(google_result, list):
                 for book in google_result:
-                    book['source'] = 'Google Books'
-                    book['is_local'] = False
-                    all_books.append(book)
+                    all_books.append({
+                        'source': 'Google Books',
+                        'book_id': book.get('id', 'unknown'),
+                        'title': book.get('title', 'N/A'),
+                        'authors': book.get('authors', []),
+                        'description': book.get('description', 'N/A'),
+                        'thumbnail': book.get('thumbnail', ''),
+                        'publisher': book.get('publisher', 'N/A'),
+                        'publishedDate': book.get('publishedDate', 'N/A'),
+                        'pageCount': book.get('pageCount', 'N/A'),
+                        'categories': book.get('categories', []),
+                        'previewLink': book.get('previewLink', '#'),
+                        'is_local': False
+                    })
+        except Exception as e:
+            google_error = f"Error buscando en Google Books: {str(e)}"
 
-        if not db_books and not all_books:
-            amazon_api = AmazonBooksAPI()
-            amazon_result = amazon_api.fetch_book_details(search_query, max_results=10)
         # Search in Amazon
-        amazon_api = AmazonBooksAPI()
-        amazon_result = amazon_api.search_books(
-            search_query, max_results=10)
+        try:
+            amazon_api = AmazonBooksAPI()
+            amazon_result = amazon_api.search_books(search_query, max_results=10)
 
-        if isinstance(amazon_result, dict) and 'error' in amazon_result:
-            amazon_error = amazon_result['error']
-        elif isinstance(amazon_result, dict) and 'books' in amazon_result:
-            for book in amazon_result['books']:
-                book['source'] = 'Amazon'
-                book['book_id'] = book.get('amazon_url', '').split(
-                    '/')[-1] if 'amazon_url' in book else ''
-                all_books.append(book)
-
-    intereses_list = user.get_intereses_list()
+            if isinstance(amazon_result, dict) and 'error' in amazon_result:
+                amazon_error = amazon_result['error']
+            elif isinstance(amazon_result, dict) and 'books' in amazon_result:
+                for book in amazon_result['books']:
+                    all_books.append({
+                        'source': 'Amazon',
+                        'book_id': book.get('asin', book.get('amazon_url', '').split('/')[-1] if 'amazon_url' in book else 'unknown'),
+                        'title': book.get('title', 'N/A'),
+                        'authors': book.get('authors', []),
+                        'description': book.get('description', 'N/A'),
+                        'thumbnail': book.get('image_url', ''),
+                        'price': book.get('price', 'N/A'),
+                        'rating': book.get('rating', 'N/A'),
+                        'amazon_url': book.get('amazon_url', ''),
+                        'is_local': False
+                    })
+        except Exception as e:
+            amazon_error = f"Error buscando en Amazon: {str(e)}"
 
     context = {
         'search_query': search_query,
