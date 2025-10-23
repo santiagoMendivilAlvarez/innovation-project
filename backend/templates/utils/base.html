@@ -20,8 +20,35 @@
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
     <div class="main-content">
+        <div class="row justify-content-center d-flex">
+            <div class="col-md-6 col-sm-6 col-lg-6 w-50">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert 
+                            {% if message.tags == 'success' %}
+                                alert-success
+                            {% elif message.tags == 'info' %}
+                                alert-info
+                            {% elif message.tags == 'warning' %}
+                                alert-warning
+                            {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                alert-danger
+                            {% endif %}
+                        " role="alert">
+                            <div class="d-flex gap-4">
+                                <span><i class="fa-solid fa-circle-info icon-primary"></i></span>
+                                <div class="d-flex flex-column gap-2">
+                                <h2 class="mb-0">{{ message }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
         {% block content %}
-        
+            
+    
         {% endblock %}
     </div>
 
