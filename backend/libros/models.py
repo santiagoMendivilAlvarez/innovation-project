@@ -29,12 +29,14 @@ class Categoria(models.Model):
     )
 
     class Meta:
+        """
+        Meta class for Categoria model.
+        """
         verbose_name        = "Categoría"
         verbose_name_plural = "Categorías"
 
     def __str__(self: 'Categoria') -> str:
-        return self.nombre
-
+        return str(self.nombre)
 
 
 class Libro(models.Model):
