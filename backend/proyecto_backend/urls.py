@@ -22,4 +22,5 @@ urlpatterns = [
     path('', include('libros.urls')),
     path('auth/', include('authentication.urls')),
     path('chatbot/', include('chatbot.urls')),
+    path('perfil/', include('profiles.urls'))
 ]

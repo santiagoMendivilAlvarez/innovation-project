@@ -1,13 +1,32 @@
 """
 Forms for the authentication app.
 """
+import json
+import re
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser
-import json
 
 
 class CustomUserCreationForm(UserCreationForm):
+    """
+    Form for the creation of a user.
+
+    Args:
+        UserCreationForm (Form): The base user creation form.
+
+    Raises:
+        forms.ValidationError: If the email is already in use.
+        forms.ValidationError: If the password is too similar to the email.
+        forms.ValidationError: If the password is too common.
+        forms.ValidationError: If the password is too short.
+        forms.ValidationError: If the password is entirely numeric.
+        forms.ValidationError: If the password is too similar to the username.
+        forms.ValidationError: If the email is not valid.
+        forms.ValidationError: If the username is already taken.
+        forms.ValidationError: If the full name is not valid.
+        forms.ValidationError: If the university is not valid.
+    """
     email = forms.EmailField(
         required  = True,
         label     = "Correo electrónico *",
@@ -17,7 +36,7 @@ class CustomUserCreationForm(UserCreationForm):
             'placeholder': 'correo@ejemplo.com'
         }),
     )
-    
+
     nombre_completo = forms.CharField(
         max_length = 100,
         min_length = 2,
@@ -28,9 +47,8 @@ class CustomUserCreationForm(UserCreationForm):
             'class': 'form-control',
             'placeholder': 'Ingresa tu nombre completo'
         }),
-        
     )
-    
+
     password1 = forms.CharField(
         label="Contraseña *",
         widget=forms.PasswordInput(attrs={
@@ -39,7 +57,7 @@ class CustomUserCreationForm(UserCreationForm):
         }),
         help_text="Mínimo 8 caracteres"
     )
-    
+
     password2 = forms.CharField(
         label="Confirmar contraseña *",
         widget=forms.PasswordInput(attrs={
@@ -48,17 +66,17 @@ class CustomUserCreationForm(UserCreationForm):
         }),
         help_text="Debe coincidir con la contraseña anterior"
     )
-    
+
     universidad = forms.ChoiceField(
         choices=[('', 'Selecciona tu universidad')] + CustomUser.UNIVERSIDAD_CHOICES,
-        required=True,  
+        required=True,
         widget=forms.Select(attrs={
             'class': 'form-control'
         }),
         label="Universidad *",
         help_text="Selecciona tu universidad"
     )
-    
+
     nivel_academico = forms.ChoiceField(
         choices=[('', 'Selecciona tu nivel académico')] + CustomUser.NIVEL_CHOICES,
         required=True,
@@ -68,7 +86,7 @@ class CustomUserCreationForm(UserCreationForm):
         label="Nivel académico *",
         help_text="Tu nivel de estudios"
     )
-    
+
     carrera = forms.CharField(
         max_length=150,
         min_length=3,
@@ -80,7 +98,7 @@ class CustomUserCreationForm(UserCreationForm):
         label="Carrera *",
         help_text="Mínimo 3 caracteres"
     )
-    
+
     INTERESES_CHOICES = [
         ('tecnologia_innovacion', 'Tecnología e Innovación'),
         ('ciencias_matematicas', 'Ciencias y Matemáticas'),
@@ -95,7 +113,7 @@ class CustomUserCreationForm(UserCreationForm):
         ('deportes_fitness', 'Deportes y Fitness'),
         ('musica_entretenimiento', 'Música y Entretenimiento'),
     ]
-    
+
     intereses_usuario = forms.MultipleChoiceField(
         choices=INTERESES_CHOICES,
         required=False, 
@@ -107,6 +125,9 @@ class CustomUserCreationForm(UserCreationForm):
     )
 
     class Meta:
+        """
+        Meta class for Custom User generation
+        """
         model = CustomUser
         fields = (
             'email', 'nombre_completo', 'password1', 'password2',
@@ -120,10 +141,10 @@ class CustomUserCreationForm(UserCreationForm):
         email = self.cleaned_data.get('email')
         if not email:
             raise forms.ValidationError("El correo electrónico es obligatorio.")
-        
         email = email.lower().strip()
         if CustomUser.objects.filter(email=email).exists():
-            raise forms.ValidationError("Ya existe un usuario registrado con este correo electrónico.")
+            raise forms.ValidationError(
+                "Ya existe un usuario registrado con este correo electrónico.")
         return email
 
     def clean_nombre_completo(self):
@@ -133,15 +154,11 @@ class CustomUserCreationForm(UserCreationForm):
         nombre = self.cleaned_data.get('nombre_completo')
         if not nombre:
             raise forms.ValidationError("El nombre completo es obligatorio.")
-        
         nombre = nombre.strip()
         if len(nombre) < 2:
             raise forms.ValidationError("El nombre debe tener al menos 2 caracteres.")
-        
-        import re
         if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$", nombre):
             raise forms.ValidationError("El nombre solo puede contener letras, espacios y guiones.")
-        
         return ' '.join(nombre.split())  
 
     def clean_universidad(self):
@@ -169,11 +186,9 @@ class CustomUserCreationForm(UserCreationForm):
         carrera = self.cleaned_data.get('carrera')
         if not carrera:
             raise forms.ValidationError("La carrera es obligatoria.")
-        
         carrera = carrera.strip()
         if len(carrera) < 3:
             raise forms.ValidationError("El nombre de la carrera debe tener al menos 3 caracteres.")
-        
         return carrera
 
     def clean_intereses_usuario(self):
