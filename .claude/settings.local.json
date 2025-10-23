@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"c:\\Users\\Dani\\Desktop\\Inovacion\\innovation-project\\backend\\venv\\Scripts\\pip.exe\" install openai)",
+      "Bash(dir /s /b \"C:\\Users\\Dani\\Desktop\\Inovacion\\innovation-project\\backend\\chatbot\")",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(\".\\venv\\Scripts\\python.exe\" manage.py migrate chatbot)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

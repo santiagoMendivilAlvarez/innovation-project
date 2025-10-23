@@ -299,6 +299,26 @@
         font-size: 0.85rem;
     }
 
+    /* Search link styles */
+    .chat-search-link {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white !important;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        text-decoration: none;
+        margin: 0.5rem 0;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        font-weight: 500;
+    }
+
+    .chat-search-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+        text-decoration: none;
+    }
+
     .chatbot-input-area {
         padding: 1.2rem;
         border-top: 1px solid rgba(102, 126, 234, 0.1);
@@ -451,6 +471,9 @@
                 <p>¿En qué puedo ayudarte hoy?</p>
             </div>
             <div class="chatbot-controls">
+                <button class="control-btn" id="clearBtn" title="Limpiar conversación">
+                    🗑️
+                </button>
                 <button class="control-btn" id="expandBtn" title="Expandir chat">
                     ⛶
                 </button>
@@ -508,8 +531,10 @@ Puedo ayudarte a:
         constructor() {
             this.isTyping = false;
             this.isFullscreen = false;
+            this.historyLoaded = false;
             this.initializeElements();
             this.bindEvents();
+            this.loadChatHistory();
         }
 
         initializeElements() {
@@ -521,6 +546,7 @@ Puedo ayudarte a:
             this.messages = document.getElementById('chatbotMessages');
             this.expandBtn = document.getElementById('expandBtn');
             this.closeBtn = document.getElementById('closeBtn');
+            this.clearBtn = document.getElementById('clearBtn');
         }
 
         bindEvents() {
@@ -528,6 +554,7 @@ Puedo ayudarte a:
             this.send.addEventListener('click', () => this.sendMessage());
             this.expandBtn.addEventListener('click', () => this.toggleFullscreen());
             this.closeBtn.addEventListener('click', () => this.closeChat());
+            this.clearBtn.addEventListener('click', () => this.clearConversation());
             
             this.input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -555,20 +582,6 @@ Puedo ayudarte a:
                     }
                 }
             });
-        }
-
-        toggleFullscreen() {
-            this.isFullscreen = !this.isFullscreen;
-            this.widget.classList.toggle('fullscreen');
-            
-            const svg = this.fullscreenBtn.querySelector('svg');
-            if (this.isFullscreen) {
-                svg.innerHTML = '<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>';
-                this.fullscreenBtn.title = 'Salir de pantalla completa';
-            } else {
-                svg.innerHTML = '<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>';
-                this.fullscreenBtn.title = 'Pantalla completa';
-            }
         }
 
         toggleChat() {
@@ -619,16 +632,114 @@ Puedo ayudarte a:
         addMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `chatbot-message ${isUser ? 'user' : 'bot'}`;
-            
-            messageDiv.innerHTML = `
-                <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
-                <div class="message-content">${content}</div>
-            `;
-            
+
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+
+            // Allow HTML in bot messages (for search links)
+            if (!isUser && content.includes('<a')) {
+                messageContent.innerHTML = content;
+            } else {
+                messageContent.textContent = content;
+            }
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = isUser ? '👤' : '🤖';
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+
             this.messages.appendChild(messageDiv);
             this.messages.scrollTop = this.messages.scrollHeight;
-            
+
             return messageDiv;
+        }
+
+        async loadChatHistory() {
+            try {
+                const response = await fetch('/chatbot/history/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    console.log('No previous conversation found');
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success && data.messages && data.messages.length > 0) {
+                    // Clear the default welcome message
+                    this.messages.innerHTML = '';
+
+                    // Load all previous messages
+                    data.messages.forEach(msg => {
+                        this.addMessage(msg.content, msg.isUser);
+                    });
+
+                    this.historyLoaded = true;
+                    console.log(`Loaded ${data.messages.length} messages from history`);
+                }
+            } catch (error) {
+                console.error('Load history error:', error);
+                // If loading history fails, just continue with default welcome message
+            }
+        }
+
+        async clearConversation() {
+            if (!confirm('¿Estás seguro de que quieres limpiar toda la conversación? Esta acción no se puede deshacer.')) {
+                return;
+            }
+
+            try {
+                const csrftoken = document.querySelector('[name=csrf_token]')?.content ||
+                                document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+                const response = await fetch('/chatbot/clear/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to clear conversation');
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Clear all messages except the initial greeting
+                    this.messages.innerHTML = `
+                        <div class="chatbot-message bot">
+                            <div class="message-avatar">🤖</div>
+                            <div class="message-content">¡Hola! Soy tu asistente virtual de BookieWookie 📚
+
+Puedo ayudarte a:
+• 🔍 Encontrar libros específicos
+• 💰 Comparar precios entre tiendas
+• 📖 Recomendar lecturas según tus gustos
+• ❓ Responder preguntas sobre nuestra plataforma
+
+¿Qué te gustaría hacer hoy?</div>
+                        </div>
+                    `;
+
+                    // Show success message
+                    this.addMessage('✨ Conversación limpiada exitosamente. ¡Empecemos de nuevo!');
+                    this.historyLoaded = false;
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('Clear conversation error:', error);
+                alert('Hubo un error al limpiar la conversación. Por favor intenta de nuevo.');
+            }
         }
 
         showTypingIndicator() {
@@ -662,9 +773,42 @@ Puedo ayudarte a:
             this.isTyping = false;
         }
 
-        getBotResponse(userMessage) {
+        async getBotResponse(userMessage) {
+            // Send message to OpenAI via Django backend
+            try {
+                const csrftoken = document.querySelector('[name=csrf_token]')?.content ||
+                                document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+                const response = await fetch('/chatbot/message/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ message: userMessage })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    return data.message;
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('Chat API Error:', error);
+                // Fallback to basic responses if API fails
+                return this.getFallbackResponse(userMessage);
+            }
+        }
+
+        getFallbackResponse(userMessage) {
             const message = userMessage.toLowerCase();
-            
+
             if (message.includes('precio') || message.includes('costo') || message.includes('barato')) {
                 return `¡Perfecto! Te ayudo a encontrar los mejores precios 💰
 
@@ -777,27 +921,31 @@ Solo dime el nombre del autor o qué tipo de escritor te interesa y te ayudo a e
             }
         }
 
-        sendMessage() {
+        async sendMessage() {
             const message = this.input.value.trim();
             if (!message) return;
-            
+
             this.send.disabled = true;
             this.input.disabled = true;
-            
+
             this.addMessage(message, true);
             this.input.value = '';
-            
+
             this.showTypingIndicator();
-            
-            setTimeout(() => {
+
+            try {
+                const response = await this.getBotResponse(message);
                 this.hideTypingIndicator();
-                const response = this.getBotResponse(message);
                 this.addMessage(response);
-                
+            } catch (error) {
+                this.hideTypingIndicator();
+                this.addMessage('Lo siento, hubo un error. Por favor intenta de nuevo.');
+                console.error('Send message error:', error);
+            } finally {
                 this.send.disabled = false;
                 this.input.disabled = false;
                 this.input.focus();
-            }, 1000 + Math.random() * 1000);
+            }
         }
     }
 
