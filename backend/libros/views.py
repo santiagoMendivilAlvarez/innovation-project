@@ -14,6 +14,7 @@ from core.api.google_books                import GoogleBooksAPI
 from core.api.amazon_books                import AmazonBooksAPI, AmazonBooksAPIAlternative
 from core.services.recommendation_service import RecomendationEngine
 from .models                              import Libro, Categoria
+from profiles.models                      import Favorito
 google_api      = GoogleBooksAPI()
 amazon_api      = AmazonBooksAPI()
 amazon_rapidapi = AmazonBooksAPIAlternative()
@@ -92,6 +93,7 @@ def books(request: HttpRequest) -> HttpResponse:
     Returns:
         HttpResponse: The rendered response containing all books and users.
     """
+    books = Libro.objects.all()
     categorias = Categoria.objects.filter(
         activa=True
     ).annotate(
@@ -110,11 +112,19 @@ def books(request: HttpRequest) -> HttpResponse:
             'libros': libros_destacados,
             'total': categoria.total_libros,
         })
+    for l in libros_destacados:
+        if request.user.is_authenticated:
+            l.is_favorite = Favorito.objects.filter(
+                usuario=request.user,
+                libro=l
+            ).exists()
+        else:
+            l.is_favorite = False
 
     context = {
         'categorias_con_libros': categorias_con_libros,
         'total_categorias': categorias.count(),
-        'usuarios': get_user_model().objects.all(),
+        'usuarios': get_user_model().objects.all()
     }
 
     return render(request, 'libros.html', context)

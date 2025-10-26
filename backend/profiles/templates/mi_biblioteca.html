@@ -4,8 +4,198 @@
 {% block title %}Mi Biblioteca - BookieWookie{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Mi Biblioteca</h2>
-    <p>Esta funcionalidad estará disponible próximamente.</p>
+<div class="container-catalog">
+    <section class="page-header">
+        <div class="section-header">
+            <div>
+                <h1 class="page-title">Mi Biblioteca</h1>
+                <p class="page-subtitle">Tus libros favoritos guardados</p>
+            </div>
+            <div class="search-info">
+                <p>Total de libros: <strong>{{ total_favorites }}</strong></p>
+            </div>
+        </div>
+        <div class="results-header">
+            <div class="sort-options">
+                <label class="sort-label" for="sort">Ordenar por:</label>
+                <select class="sort-select" id="sort" onchange="window.location = this.value;">
+                    <option value="?sort=recent" {% if request.GET.sort == 'recent' %}selected{% endif %}>Más recientes</option>
+                    <option value="?sort=title" {% if request.GET.sort == 'title' %}selected{% endif %}>Título</option>
+                    <option value="?sort=author" {% if request.GET.sort == 'author' %}selected{% endif %}>Autor</option>
+                    <option value="?sort=rating" {% if request.GET.sort == 'rating' %}selected{% endif %}>Calificación</option>
+                </select>
+            </div>
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="grid">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button class="view-btn" data-view="list">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    {% if favoritos %}
+    <div class="books-section">
+        <div class="libros-grid" id="booksGrid">
+            {% for favorito in favoritos %}
+            <div class="libro-card">
+                <div class="libro-actions">
+                    <button class="btn-icon favorite active" title="Quitar de favoritos" 
+                            onclick="removeFavorite('{{ favorito.libro.id }}')">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                    {% if favorito.libro.disponible %}
+                    <button class="btn-icon add-cart" title="Agregar al carrito">
+                        <i class="fas fa-shopping-cart"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <a href="#" class="libro-portada-small">
+                    {% if favorito.libro.imagen_url %}
+                        <img src="{{ favorito.libro.imagen_url }}" alt="{{ favorito.libro.titulo }}"
+                             loading="lazy">
+                    {% else %}
+                        <img src="{% static 'images/default-book.png' %}" alt="Portada no disponible"
+                             loading="lazy">
+                    {% endif %}
+                </a>
+                
+                <div class="libro-info">
+                    <a href="#" class="libro-titulo-small">
+                        {{ favorito.libro.titulo }}
+                    </a>
+                    <p class="libro-author-small">{{ favorito.libro.autor }}</p>
+                    
+                    <div class="libro-meta">
+                        {% if favorito.libro.calificacion %}
+                        <div class="libro-rating-small">
+                            <i class="fas fa-star"></i>
+                            <span>{{ favorito.libro.calificacion|floatformat:1 }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if favorito.libro.precio %}
+                        <div class="libro-precio">
+                            <strong>${{ favorito.libro.precio|floatformat:2 }}</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if favorito.libro.categoria %}
+                    <span class="book-category">{{ favorito.libro.categoria.nombre }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="{{ request.path }}?page={{ page_obj.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+           class="btn btn-outline page-nav" title="Página anterior">
+            <i class="fas fa-chevron-left"></i> Anterior
+        </a>
+        {% endif %}
+
+        <div class="page-numbers">
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="current">{{ num }}</span>
+                {% else %}
+                    <a href="{{ request.path }}?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_next %}
+        <a href="{{ request.path }}?page={{ page_obj.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+           class="btn btn-outline page-nav" title="Página siguiente">
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-heart-broken fa-3x"></i>
+        </div>
+        <h3>No tienes libros favoritos aún</h3>
+        <p>Explora nuestro catálogo y descubre libros increíbles para agregar a tu biblioteca</p>
+        <div class="empty-state-actions">
+            <a href="{% url 'catalogo' %}" class="btn btn-primary">
+                <i class="fas fa-book-open"></i> Explorar Catálogo
+            </a>
+            <a href="{% url 'recomendaciones' %}" class="btn btn-secondary">
+                <i class="fas fa-magic"></i> Ver Recomendaciones
+            </a>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // View toggle functionality
+    const gridView = document.getElementById('booksGrid');
+    const viewBtns = document.querySelectorAll('.view-btn');
+    
+    viewBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            viewBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            if (view === 'list') {
+                gridView.classList.remove('libros-grid');
+                gridView.classList.add('books-list');
+            } else {
+                gridView.classList.remove('books-list');
+                gridView.classList.add('libros-grid');
+            }
+        });
+    });
+});
+
+// Favorite removal functionality
+function removeFavorite(bookId) {
+    if (confirm('¿Estás seguro de que deseas quitar este libro de tus favoritos?')) {
+        fetch(`/api/favoritos/${bookId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            }
+        });
+    }
+}
+
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
+
 {% endblock %}

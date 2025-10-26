@@ -20,7 +20,6 @@
                     <!-- Grid de Libros -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem;">
                         {% for libro in cat_data.libros %}
-                            <a href="{% url 'book_detail' libro.id %}?title={{ libro.titulo }}&author={{ libro.autor }}&thumbnail={{ libro.imagen_url }}" style="text-decoration: none; color: inherit;">
                                 <div style="background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s; border: 1px solid #e0e0e0; cursor: pointer; text-align: center; height: 100%;">
                                     <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; margin-bottom: 0.75rem; overflow: hidden;">
                                         {% if libro.imagen_url %}
@@ -29,6 +28,18 @@
                                             📚
                                         {% endif %}
                                     </div>
+                                    {% if libro.is_favorite %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="pink" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
+                                    </svg>
+                                    {% else %}
+                                    <button style="background: none; border: none; padding: 0; cursor: pointer;" title="Agregar a favoritos"
+                                        onclick="addFavorite('{% url 'agregar_favorito' libro.id %}')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                                            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
+                                            </svg>
+                                    </button>
+                                    {% endif %}
                                     
                                     <h4 style="font-size: 0.8rem; font-weight: 600; color: #333; margin: 0 0 0.4rem 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                         {{ libro.titulo|truncatewords:5 }}
@@ -42,7 +53,6 @@
                                     <div style="font-size: 0.75rem; color: #ff9800; font-weight: 600;">⭐ {{ libro.calificacion }}/5</div>
                                     {% endif %}
                                 </div>
-                            </a>
                         {% endfor %}
                     </div>
                 </div>
@@ -61,4 +71,44 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const addFavorite = async (url) => {
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Accept': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Respuesta:", data);
+        } else {
+            const errText = await response.text();
+            console.error("Error al agregar a favoritos:", response.status, errText);
+        }
+    } catch (error) {
+        console.error("Error en la solicitud:", error);
+    }
+};
+</script>
+
 {% endblock %}
