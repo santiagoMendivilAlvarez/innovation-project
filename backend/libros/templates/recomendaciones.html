@@ -4,6 +4,44 @@
 {% block title %}Recomendaciones - BookieWookie{% endblock %}
 
 {% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Recomendaciones para ti</h1>
+    
+    {% if recommendations %}
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for libro in recommendations %}
+        <div class="bg-white rounded-lg shadow hover:shadow-lg transition">
+            {% if libro.imagen_url %}
+            <img src="{{ libro.imagen_url }}" alt="{{ libro.titulo }}" 
+                 class="w-full h-64 object-cover rounded-t-lg">
+            {% endif %}
+            
+            <div class="p-4">
+                <h3 class="font-bold text-lg mb-2">{{ libro.titulo }}</h3>
+                <p class="text-gray-600 text-sm mb-2">{{ libro.autor }}</p>
+                <p class="text-gray-500 text-xs mb-2">{{ libro.categoria.nombre }}</p>
+                
+                <div class="flex justify-between items-center mt-4">
+                    <span class="text-lg font-bold">${{ libro.precio }}</span>
+                    {% if libro.calificacion %}
+                    <span class="text-yellow-500">★ {{ libro.calificacion }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+        <p class="text-gray-600 text-lg mb-4">
+            Aún no tenemos suficiente información para recomendarte libros.
+        </p>
+        <a href="#" class="text-blue-600 underline">
+            ¿Por qué no nos cuentas tus intereses?
+        </a>
+    </div>
+    {% endif %}
+</div>
 <div class="recomendaciones-container">
     <div class="page-header">
         <h1 class="page-title">📚 Recomendaciones Personalizadas</h1>

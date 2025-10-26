@@ -114,7 +114,11 @@ class RecomendationEngine:
             combined = user_features
         else:
             combined = collab_features
+        
+        if combined is None or getattr(combined, 'empty', True):
+            raise ValueError("Not enough data to train the recommendation model.")
 
+        combined = combined.fillna(0)
         scaler = MinMaxScaler()
         normalized = scaler.fit_transform(combined)
 
@@ -131,7 +135,10 @@ class RecomendationEngine:
         Args:
             self (RecomendationEngine): The recommendation engine object.
         """
-        self.model_path.mkdir(exist_ok=True, parents=True)
+        parent = self.model_path.parent
+        parent.mkdir(exist_ok=True, parents=True)
+        if self.model_path.exists() and self.model_path.is_dir():
+            raise PermissionError("Cannot save model: path is a directory.")
         with open(self.model_path, 'wb') as f:
             pickle.dump({
                 'similarity_matrix': self.user_similarity_matrix,
@@ -149,7 +156,7 @@ class RecomendationEngine:
         Returns:
             bool: True if exists and was loaded. False otherwise
         """
-        if self.model_path.exists():
+        if self.model_path.exists() and self.model_path.is_file():
             with open(self.model_path, 'rb') as f:
                 data = pickle.load(f)
                 self.user_similarity_matrix = data['similarity_matrix']
@@ -265,3 +272,20 @@ class RecomendationEngine:
             num_favoritos=Count('favoritos')
         ).order_by('-calificacion', '-num_favoritos')[:top_n]
         return similares
+
+    def _boost_by_interests(self: 'RecomendationEngine', user_id: int, queryset: QuerySet) -> list:
+        interests = InteresUsuario.objects.filter(
+            usuario_id=user_id
+        ).values('categoria_id', 'nivel_interes')
+
+        if not interests:
+            return queryset
+        boost_map = {i['categoria_id']: i['nivel_interes'] for i in interests}
+        results= list(queryset)
+
+        for item in results:
+            libro = Libro.objects.get(id=item['libro_id'])
+            if libro.categoria_id in boost_map:
+                item['score'] += boost_map[libro.categoria_id]
+        results.sort(key=lambda x: x['score'], reverse=True)
+        return results

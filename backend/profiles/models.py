@@ -136,4 +136,4 @@ class InteresUsuario(models.Model):
         verbose_name_plural = "Intereses de Usuario"
 
     def __str__(self: 'InteresUsuario') -> str:
-        return f"{self.usuario.username} - {self.genero} (Nivel: {self.nivel_interes})"
+        return f"{self.usuario.username} (Nivel: {self.nivel_interes})"

@@ -1,17 +1,19 @@
 """
 Views for the libros app.
 """
-from datetime import datetime
-from django.shortcuts               import render, redirect
-from django.contrib.auth            import get_user_model
-from .models                        import Libro, Categoria
-from django.http                    import HttpResponse, JsonResponse, HttpRequest
-from django.views.decorators.http   import require_http_methods
-from django.contrib.auth.decorators import login_required
-from django.db.models               import QuerySet, Q, Count
-from libros.models                  import Libro
-from core.api.google_books          import GoogleBooksAPI
-from core.api.amazon_books          import AmazonBooksAPI, AmazonBooksAPIAlternative
+# pylint: disable=E1101
+from django.shortcuts                     import render, get_object_or_404
+from django.contrib.auth                  import get_user_model
+from django.http                          import HttpResponse, JsonResponse, HttpRequest
+from django.views.decorators.http         import require_http_methods
+from django.contrib.auth.decorators       import login_required
+from django.db.models                     import QuerySet, Q, Count, Avg
+from django.db                            import models
+from libros.models                        import Libro
+from core.api.google_books                import GoogleBooksAPI
+from core.api.amazon_books                import AmazonBooksAPI, AmazonBooksAPIAlternative
+from core.services.recommendation_service import RecomendationEngine
+from .models                              import Libro, Categoria
 google_api      = GoogleBooksAPI()
 amazon_api      = AmazonBooksAPI()
 amazon_rapidapi = AmazonBooksAPIAlternative()
@@ -511,7 +513,7 @@ def api_categorias(request: HttpRequest) -> JsonResponse:
     categorias = Categoria.objects.filter(activa=True).annotate(
         total_libros=Count('libros', filter=Q(libros__disponible=True))
     ).values('id', 'nombre', 'descripcion', 'icono', 'color', 'total_libros')
-    
+
     return JsonResponse({
         'total': categorias.count(),
         'categorias': list(categorias)
@@ -524,15 +526,15 @@ def api_libros_categoria(request: HttpRequest) -> JsonResponse:
     API endpoint que retorna libros de una categoría específica.
     """
     categoria_id = request.GET.get('categoria_id')
-    
+
     if not categoria_id:
         return JsonResponse({'error': 'categoria_id requerido'}, status=400)
-    
+
     categoria = get_object_or_404(Categoria, id=categoria_id, activa=True)
     libros = categoria.libros.filter(disponible=True).values(
         'id', 'titulo', 'autor', 'precio', 'calificacion', 'imagen_url'
     )
-    
+
     return JsonResponse({
         'categoria': {
             'id': categoria.id,
@@ -545,6 +547,75 @@ def api_libros_categoria(request: HttpRequest) -> JsonResponse:
 
 
 @login_required
-def recomendaciones_view(request):
-    return render(request, 'recomendaciones.html')
+def recomendaciones_view(request: HttpRequest) -> HttpResponse:
+    """
+    Recommendations view using machine learning model.
 
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: The HTTP response object.
+    """
+    engine = RecomendationEngine()
+    print("Generating recommendations for user:", request.user.id)
+    try:
+        recommendations = engine.get_recommendations(
+            user_id=request.user.id,
+            top_n=12
+        )
+        print(recommendations)
+    except Exception as e:
+        print("Error generating recommendations:", e)
+        recommendations = []
+    return render(request, 'recomendaciones.html', {
+        'recommendations' : recommendations
+    })
+
+
+@login_required
+def api_recommendations(request):
+    """API endpoint para obtener recomendaciones (JSON)"""
+    engine = RecomendationEngine()
+    top_n = int(request.GET.get('top_n', 10))
+    
+    try:
+        recommendations = engine.get_recommendations(
+            user_id=request.user.id,
+            top_n=top_n
+        )
+        
+        data = [{
+            'id': libro.id,
+            'titulo': libro.titulo,
+            'autor': libro.autor,
+            'precio': float(libro.precio),
+            'calificacion': libro.calificacion,
+            'imagen_url': libro.imagen_url,
+            'categoria': libro.categoria.nombre
+        } for libro in recommendations]
+        
+        return JsonResponse({
+            'success': True,
+            'recommendations': data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+def similar_books_view(request, libro_id):
+    """Vista para mostrar libros similares a uno específico"""
+    engine = RecomendationEngine()
+    
+    similares = engine.get_similar_books(
+        libro_id=libro_id,
+        top_n=6
+    )
+    
+    return render(request, 'recomendaciones/similar_books.html', {
+        'similar_books': similares
+    })
