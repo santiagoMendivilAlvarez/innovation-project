@@ -387,50 +387,115 @@ def amazon_book_details(request, asin):
     
     return render(request, 'amazon_book_details.html', context)
 
-
 def book_detail_view(request, book_id):
     """
-    Book detail page - shows basic book information.
+    Book detail page - shows complete book information.
+    Supports Google Books API, Amazon API, and local database books.
+    Auto-detects if book_id is numeric (database) or string (API).
     """
-    # For now, we'll just show the title from the query parameter
-    book_title = request.GET.get('title', 'Libro sin título')
-    book_author = request.GET.get('author', 'Autor desconocido')
-    book_source = request.GET.get('source', 'Fuente desconocida')
-    book_thumbnail = request.GET.get('thumbnail', '')
-    book_price = request.GET.get('price', 'N/A')
+    source = request.GET.get('source', None)
+    
+    if not source:
+        try:
+            int(book_id)
+            if Libro.objects.filter(id=book_id).exists():
+                source = 'database'
+            else:
+                source = 'google'  
+        except (ValueError, TypeError):
+            source = 'google'
+    
+    book = None
+    error = None
+    
+    if source == 'google':
+        try:
+            google_api = GoogleBooksAPI()
+            book_data = google_api.fetch_book_details(book_id)
+            
+            if isinstance(book_data, dict) and 'error' in book_data:
+                error = 'No se pudo cargar la información del libro de Google Books'
+            else:
+                if isinstance(book_data, list) and len(book_data) > 0:
+                    book = book_data[0]
+                elif isinstance(book_data, dict):
+                    book = book_data
+                else:
+                    error = 'Formato de datos inválido'
+                    
+        except Exception as e:
+            error = f'Error al cargar desde Google Books: {str(e)}'
+            print(f"[DEBUG] Google Books error: {e}")
+            print(f"[DEBUG] Book ID: {book_id}")
+            
+    elif source == 'amazon':
+        try:
+            amazon_api = AmazonBooksAPI()
+            book_data = amazon_api.get_book_details(book_id)
+            
+            if isinstance(book_data, dict) and 'error' in book_data:
+                error = 'No se pudo cargar la información del libro de Amazon'
+            else:
+                book = {
+                    'title': book_data.get('title', 'N/A'),
+                    'authors': book_data.get('authors', []),
+                    'description': book_data.get('description', 'N/A'),
+                    'thumbnail': book_data.get('image_url', ''),
+                    'categories': book_data.get('categories', []),
+                    'published_date': book_data.get('publication_date', 'N/A'),
+                    'publishedDate': book_data.get('publication_date', 'N/A'),
+                    'page_count': book_data.get('pages', 'N/A'),
+                    'pageCount': book_data.get('pages', 'N/A'),
+                    'publisher': book_data.get('publisher', 'N/A'),
+                    'price': book_data.get('price', 'N/A'),
+                    'rating': book_data.get('rating', 'N/A'),
+                    'amazon_url': book_data.get('amazon_url', '#'),
+                }
+        except Exception as e:
+            error = f'Error al cargar desde Amazon: {str(e)}'
+            print(f"[DEBUG] Amazon error: {e}")
+    
+    elif source == 'database':
+        try:
+            libro = Libro.objects.get(id=book_id)
+            book = {
+                'title': libro.titulo,
+                'authors': [libro.autor] if libro.autor else [],
+                'description': libro.descripcion,
+                'thumbnail': libro.imagen_url,
+                'categories': [libro.categoria.nombre] if libro.categoria else [],
+                'published_date': libro.fecha_publicacion.strftime('%Y-%m-%d') if libro.fecha_publicacion else None,
+                'publishedDate': libro.fecha_publicacion.strftime('%Y-%m-%d') if libro.fecha_publicacion else None,
+                'page_count': libro.paginas,
+                'pageCount': libro.paginas,
+                'publisher': 'N/A',
+                'price': float(libro.precio) if libro.precio else None,
+                'rating': libro.calificacion,
+            }
+        except Libro.DoesNotExist:
+            error = 'Libro no encontrado en la base de datos'
+        except Exception as e:
+            error = f'Error al cargar desde base de datos: {str(e)}'
+            print(f"[DEBUG] Database error: {e}")
+    
+    else:
+        error = 'Fuente de datos no válida'
+
+    # Debug info
+    print(f"[DEBUG] Source: {source}")
+    print(f"[DEBUG] Book ID: {book_id}")
+    print(f"[DEBUG] Book data exists: {book is not None}")
+    if book:
+        print(f"[DEBUG] Book title: {book.get('title', 'N/A')}")
 
     context = {
         'user': request.user,
-        'book': {
-            'id': book_id,
-            'title': book_title,
-            'authors': [book_author] if book_author != 'Autor desconocido' else [],
-            'source': book_source,
-            'thumbnail': book_thumbnail,
-            'price': book_price,
-        }
+        'book': book,
+        'source': source,
+        'error': error
     }
 
     return render(request, 'book_detail.html', context)
-
-def categorias_listado(request: HttpRequest) -> HttpResponse:
-    """
-    Muestra todas las categorías con estadísticas.
-    """
-    categorias = Categoria.objects.filter(
-        activa=True
-    ).annotate(
-        total_libros=Count('libros', filter=Q(libros__disponible=True)),
-        calificacion_promedio=Avg('libros__calificacion', filter=Q(libros__disponible=True))
-    ).order_by('orden', 'nombre')
-
-    context = {
-        'categorias': categorias,
-        'total_categorias': categorias.count(),
-        'total_libros': Libro.objects.filter(disponible=True).count(),
-    }
-    return render(request, 'categorias_listado.html', context)
-
 
 def categoria_detalle(request: HttpRequest, categoria_id: int) -> HttpResponse:
     """
