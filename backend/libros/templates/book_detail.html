@@ -2,58 +2,145 @@
 
 {% block title %}{{ book.title }} - BookieWookie{% endblock %}
 
-
 {% block content %}
-<div class="detail-container">
-    <nav class="breadcrumb">
-        <a href="{% url 'libros' %}">🏠 Inicio</a> / 
-        <a href="{% url 'book_search' %}{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}">🔍 Búsqueda</a> / 
-        <span>{{ book.title }}</span>
-    </nav>
-
-    <!-- Book Detail Card -->
-    <div class="book-detail-card">
-        <div class="page-icon">📖</div>
-        
-        <!-- Book Cover -->
-        <div class="book-cover-large">
-            {% if book.thumbnail %}
-                <img src="{{ book.thumbnail }}" alt="{{ book.title }}">
-            {% else %}
-                📚
-            {% endif %}
+<div class="detail-wrapper">
+    {% if error %}
+        <div class="error-message">
+            <strong>⚠️ Error:</strong> {{ error }}
         </div>
+    {% endif %}
 
-        <!-- Book Title -->
-        <h1 class="book-detail-title">{{ book.title }}</h1>
+    {% if book %}
+        <nav class="breadcrumb">
+            <a href="/">Inicio</a> / 
+            <a href="javascript:history.back()">Búsqueda</a> / 
+            <span>{{ book.title|default:"Libro" }}</span>
+        </nav>
 
-        <!-- Book Author -->
-        {% if book.authors %}
-        <p class="book-detail-author">
-            Por: {{ book.authors|join:", " }}
-        </p>
-        {% endif %}
+        <div class="book-main-card">
+            <div class="inicio-ficcion">
+                <button class="agregar-btn" onclick="agregarABiblioteca()">
+                    <span>⭐</span>
+                    <span>Agregar a Biblioteca</span>
+                </button>
+            </div>
 
-        <!-- Book Info -->
-        {% if book.price and book.price != 'N/A' %}
-        <div class="book-info-grid">
-            <div class="info-item">
-                <div class="info-label">Precio</div>
-                <div class="info-value" style="color: #2e7d32; font-size: 1.5rem;">{{ book.price }}</div>
+            <!-- Book Header -->
+            <div class="book-header">
+                <!-- Cover -->
+                <div class="book-cover-section">
+                    {% if book.thumbnail %}
+                        <img src="{{ book.thumbnail }}" alt="{{ book.title }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="book-cover-placeholder" style="display: none;">
+                            📚
+                        </div>
+                    {% else %}
+                        <div class="book-cover-placeholder">
+                            📚
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Info -->
+                <div class="book-info-section">
+                    <h1>{{ book.title|default:"Sin título" }}</h1>
+                    
+                    {% if book.authors %}
+                        {% if book.authors.0 %}
+                            <p class="book-author">Por {{ book.authors.0 }}</p>
+                        {% elif book.authors %}
+                            <p class="book-author">Por {{ book.authors|join:", " }}</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="book-author">Autor desconocido</p>
+                    {% endif %}
+
+                    <div class="book-description">
+                        {% if book.description %}
+                            {{ book.description|safe }}
+                        {% else %}
+                            <p style="color: #999; font-style: italic;">No hay descripción disponible para este libro.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalles del libro -->
+            <div class="detalles-section">
+                <h2>Detalles del libro</h2>
+                <div class="detalles-grid">
+                    <div class="detalle-item">
+                        <div class="detalle-label">Género</div>
+                        <div class="detalle-value">
+                            {% if book.categories %}
+                                {% if book.categories.0 %}
+                                    {{ book.categories.0 }}
+                                {% else %}
+                                    {{ book.categories|join:", " }}
+                                {% endif %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="detalle-item">
+                        <div class="detalle-label">Año de publicación</div>
+                        <div class="detalle-value">
+                            {% if book.published_date %}
+                                {{ book.published_date|slice:":4" }}
+                            {% elif book.publishedDate %}
+                                {{ book.publishedDate|slice:":4" }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="detalle-item">
+                        <div class="detalle-label">No. páginas</div>
+                        <div class="detalle-value">
+                            {% if book.page_count %}
+                                {{ book.page_count }}
+                            {% elif book.pageCount %}
+                                {{ book.pageCount }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="disponibilidad-section">
+                <h2>Disponibilidad</h2>
+                
+                <div class="placeholder-box">
+                    <p>📦 Información de disponibilidad y precios</p>
+                    <p>Se mostrará próximamente</p>
+                </div>
             </div>
         </div>
-        {% endif %}
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <a href="{% url 'book_search' %}{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}" class="search-btna">
-                ← Volver a búsqueda
-            </a>
-            <a href="{% url 'libros' %}" class="search-text-btn">
-                🏠 Ir al inicio
-            </a>
+        <div class="book-main-card">
+            <div class="libros-relacionados-section">
+                <h2>Libros relacionados</h2>
+                
+                <div class="placeholder-box" style="padding: 70px 20px;">
+                    <p>📚 Recomendaciones personalizadas</p>
+                    <p>Se mostrarán próximamente</p>
+                </div>
+            </div>
         </div>
-    </div>
+    {% else %}
+        <div class="error-message">
+            <strong>⚠️ Libro no encontrado</strong>
+            <p>No se pudo cargar la información del libro solicitado.</p>
+        </div>
+    {% endif %}
 </div>
-{% endblock %}
 
+<script>
+function agregarABiblioteca() {
+    alert('Funcionalidad de biblioteca en desarrollo 📚');
+}
+</script>
+{% endblock %}

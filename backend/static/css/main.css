@@ -2280,6 +2280,189 @@ select.form-control {
 .explorar-mas-link:hover {
     text-decoration: underline;
 }
+/* ===================================
+   BOOK DETAIL PAGE
+   =================================== */
+
+.detail-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.book-main-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 40px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #1976d2;
+}
+
+.inicio-ficcion {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.agregar-btn {
+    background: white;
+    border: 1px solid #1976d2;
+    color: #1976d2;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.agregar-btn:hover {
+    background: #e3f2fd;
+}
+
+.book-header {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.book-cover-section {
+    width: 100%;
+}
+
+.book-cover-section img {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.book-cover-placeholder {
+    width: 100%;
+    height: 260px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 3rem;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.book-info-section h1 {
+    font-size: 2.5rem;
+    margin: 0 0 10px 0;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.book-info-section .book-author {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 25px;
+}
+
+.book-description {
+    line-height: 1.7;
+    color: #444;
+    text-align: justify;
+    font-size: 0.95rem;
+}
+
+.detalles-section {
+    margin: 40px 0;
+    border-top: 2px solid #f0f0f0;
+    padding-top: 30px;
+}
+
+.detalles-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.detalles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.detalle-item {
+    border: 2px solid #1976d2;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    background: white;
+}
+
+.detalle-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.detalle-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1976d2;
+}
+
+.disponibilidad-section {
+    margin: 40px 0;
+    border-top: 2px solid #f0f0f0;
+    padding-top: 30px;
+}
+
+.disponibilidad-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.placeholder-box {
+    text-align: center;
+    padding: 50px 20px;
+    color: #999;
+    background: #fafafa;
+    border-radius: 12px;
+    border: 2px dashed #e0e0e0;
+}
+
+.placeholder-box p:first-child {
+    font-size: 1.1rem;
+    margin: 0 0 10px 0;
+    color: #666;
+    font-weight: 600;
+}
+
+.placeholder-box p:last-child {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #999;
+}
+
+.libros-relacionados-section {
+    border-top: 2px solid #f0f0f0;
+    padding-top: 30px;
+}
+
+.libros-relacionados-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+    font-weight: 700;
+}
 
 /* ===================================
    RESPONSIVE
@@ -2516,6 +2699,39 @@ select.form-control {
 
     .explorar-subtitulo {
         font-size: 0.95rem;
+    }
+     .book-main-card {
+        padding: 25px;
+    }
+
+    .book-header {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .book-cover-section {
+        max-width: 180px;
+        margin: 0 auto;
+    }
+
+    .detalles-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .book-info-section h1 {
+        font-size: 1.8rem;
+    }
+
+    .inicio-ficcion {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .agregar-btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 
