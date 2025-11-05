@@ -24,6 +24,7 @@
          </div>
     </div>
 
+
     <div class="stats-section">
         <div class="stat-card">
             <span class="stat-number">45,000+</span>
@@ -73,35 +74,47 @@
         </div>
     </div>
 
-    <!-- Show default content -->
+    <!-- Explore Popular Books -->
     <div class="books-section">
         <div class="section-header">
-            <h2 class="section-title">Los libros mas recientes</h2>
+            <h2 class="section-title">Explorar libros populares</h2>
             <a href="{% url "libros" %}" class="view-all-btn">Ver más</a>
         </div>
 
         <div class="books-grid">
-            {% if last_ten_books %}
-                {% for book in last_ten_books %}
-                    <div class="book-card">
-                        <div class="book-cover" style="background: linear-gradient(135deg, #4caf50, #2e7d32);">📖</div>
-                        <div class="book-info">
-                            <h4 class="book-title">{{ book.titulo }}</h4>
-                            <p class="book-author">{{ book.autor }}</p>
-                            <span class="book-category">{{ book.categoria.nombre }}</span>
+            {% if has_explore_books %}
+                {% for book in explore_books %}
+                    <a href="{% url 'book_detail' book.id %}?source=google" class="book-card-link">
+                        <div class="book-card">
+                            <div class="book-cover">
+                                {% if book.thumbnail %}
+                                    <img src="{{ book.thumbnail }}" alt="{{ book.title }}" onerror="this.style.display='none'; this.parentElement.innerHTML='📖';">
+                                {% else %}
+                                    📖
+                                {% endif %}
+                            </div>
+                            <div class="book-info">
+                                <h4 class="book-title">{{ book.title|truncatechars:50 }}</h4>
+                                {% if book.authors %}
+                                <p class="book-author">{{ book.authors|join:", "|truncatechars:40 }}</p>
+                                {% endif %}
+                                {% if book.categories %}
+                                <span class="book-category">{{ book.categories.0 }}</span>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 {% endfor %}
             {% else %}
                 <div class="row d-flex">
                     <div class="col-md-12 col-lg-12 col-sm-12 text-center">
                         <h3>
-                        No books available
+                        No se pudieron cargar los libros en este momento
                         </h3>
                     </div>
                 </div>
             {% endif %}
-            
+
         </div>
     </div>
     {% if not request.user.is_authenticated %}

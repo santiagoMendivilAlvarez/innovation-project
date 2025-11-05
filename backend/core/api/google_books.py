@@ -149,6 +149,7 @@ class GoogleBooksAPI:
         for item in data.get('items', [])[:10]:  # Limit to 10 results
             book_info = item.get('volumeInfo', {})
             books.append({
+                'id': item.get('id', 'unknown'),
                 'title': book_info.get('title', 'N/A'),
                 'authors': book_info.get('authors', []),
                 'publisher': book_info.get('publisher', 'N/A'),
@@ -160,3 +161,50 @@ class GoogleBooksAPI:
                 'previewLink': book_info.get('previewLink', '#'),
             })
         return books
+
+    def get_book_by_id(self: 'GoogleBooksAPI', book_id: str) -> dict:
+        """
+        Fetch a specific book by its Google Books ID.
+
+        Args:
+            book_id (str): The Google Books volume ID
+
+        Returns:
+            dict: Book details or error dict
+        """
+        cache_key = f"google_book_id_{book_id}"
+        cached_result = cache.get(cache_key)
+        if cached_result:
+            return cached_result
+
+        if not self.api_key:
+            return {'error': 'Google Books API key not configured'}
+
+        try:
+            url = f"{self.url}/{book_id}"
+            params = {'key': self.api_key} if self.api_key else {}
+            response = requests.get(url, params=params, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+
+            book_info = data.get('volumeInfo', {})
+            result = {
+                'id': data.get('id', book_id),
+                'title': book_info.get('title', 'N/A'),
+                'authors': book_info.get('authors', []),
+                'publisher': book_info.get('publisher', 'N/A'),
+                'publishedDate': book_info.get('publishedDate', 'N/A'),
+                'published_date': book_info.get('publishedDate', 'N/A'),
+                'description': book_info.get('description', 'N/A'),
+                'pageCount': book_info.get('pageCount', 'N/A'),
+                'page_count': book_info.get('pageCount', 'N/A'),
+                'categories': book_info.get('categories', []),
+                'thumbnail': book_info.get('imageLinks', {}).get('thumbnail', '').replace('http://', 'https://'),
+                'previewLink': book_info.get('previewLink', '#'),
+            }
+
+            cache.set(cache_key, result, 86400)
+            return result
+
+        except requests.RequestException as e:
+            return {'error': f'Error fetching book: {str(e)}'}

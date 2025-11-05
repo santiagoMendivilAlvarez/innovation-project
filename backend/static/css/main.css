@@ -1251,11 +1251,25 @@ select.form-control {
     margin-bottom: 4rem;
 }
 
+.recommendations-section {
+    margin-bottom: 4rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8f0fe 100%);
+    border-radius: 16px;
+}
+
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+}
+
+.section-subtitle {
+    color: #666;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    font-weight: normal;
 }
 
 .section-title {
@@ -1286,17 +1300,24 @@ select.form-control {
     gap: 1.5rem;
 }
 
+.book-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
 .book-card {
     background: white;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    transition: transform 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s;
     cursor: pointer;
 }
 
 .book-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 
 .book-cover {
@@ -1309,6 +1330,16 @@ select.form-control {
     color: white;
     font-size: 3rem;
     position: relative;
+    overflow: hidden;
+}
+
+.book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .book-info {
@@ -1370,6 +1401,12 @@ select.form-control {
 /* ===================================
    BOOK SEARCH PAGE (SEARCH.HTML)
    =================================== */
+.search-page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
 .search-header {
     background: white;
     padding: 2rem;
@@ -1382,6 +1419,46 @@ select.form-control {
     display: flex;
     gap: 1rem;
     margin-bottom: 1rem;
+}
+
+.search-header .search-input {
+    background: white;
+    border: 2px solid #e0e0e0;
+    color: #333;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+    flex: 1;
+}
+
+.search-header .search-input::placeholder {
+    color: #999;
+}
+
+.search-header .search-input:focus {
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.search-header .search-btn {
+    position: static;
+    background: #1976d2;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.search-header .search-btn:hover {
+    background: #1565c0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .search-info {
