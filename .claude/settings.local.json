@@ -5,7 +5,10 @@
       "Bash(dir /s /b \"C:\\Users\\Dani\\Desktop\\Inovacion\\innovation-project\\backend\\chatbot\")",
       "Bash(findstr:*)",
       "Bash(dir:*)",
-      "Bash(\".\\venv\\Scripts\\python.exe\" manage.py migrate chatbot)"
+      "Bash(\".\\venv\\Scripts\\python.exe\" manage.py migrate chatbot)",
+      "Bash(.venvScriptspython.exe manage.py runserver)",
+      "Bash(timeout 3 bash:*)",
+      "Bash(python manage.py runserver:*)"
     ],
     "deny": [],
     "ask": []

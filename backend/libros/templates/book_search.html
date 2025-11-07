@@ -4,7 +4,7 @@
 {% block title %}Buscar Libros - BookieWookie{% endblock %}
 
 {% block content %}
-<div class="search-container">
+<div class="search-page-container">
     <!-- Search Header -->
     <div class="search-header">
         <form class="search-box" method="GET" action="{% url 'book_search' %}">
@@ -113,7 +113,7 @@
             <!-- Books List -->
             <div class="books-list">
                 {% for book in books %}
-                <div class="book-item" onclick="window.location.href='{% url 'book_detail' book.book_id|default:'unknown' %}?title={{ book.title|urlencode }}&author={% if book.authors %}{{ book.authors.0|urlencode }}{% endif %}&source={{ book.source|urlencode }}&thumbnail={{ book.thumbnail|urlencode }}&price={{ book.price|default:'N/A'|urlencode }}'">
+                <div class="book-item" onclick="window.location.href='{% url 'book_detail' book.book_id|default:book.id|default:'unknown' %}?source={% if book.is_local %}database{% elif book.source == 'Google Books' %}google{% elif book.source == 'Amazon' %}amazon{% else %}google{% endif %}'">
                     <div class="book-thumbnail">
                         {% if book.thumbnail %}
                             <img src="{{ book.thumbnail }}" alt="{{ book.title }}">
@@ -122,9 +122,9 @@
                         {% endif %}
                     </div>
                     <div class="book-details">
-                        <h3 class="book-title">{{ book.title }}</h3>
+                        <h3 class="book-title-search">{{ book.title }}</h3>
                         {% if book.authors %}
-                        <p class="book-author">Autor: {{ book.authors|join:", " }}</p>
+                        <p class="book-author-search">Autor: {{ book.authors|join:", " }}</p>
                         {% endif %}
                         
                         <div class="book-meta">
@@ -182,7 +182,7 @@
                             {% if book.rating and book.rating != 'N/A' %}
                             <span style="font-size: 0.85rem; color: #ff9800;">⭐ {{ book.rating }}</span>
                             {% endif %}
-                            <button class="view-btn-action" onclick="event.stopPropagation();">Ver detalles</button>
+                            <button class="view-btn-action" onclick="event.stopPropagation(); window.location.href='{% url 'book_detail' book.book_id|default:book.id|default:'unknown' %}?source={% if book.is_local %}database{% elif book.source == 'Google Books' %}google{% elif book.source == 'Amazon' %}amazon{% else %}google{% endif %}'">Ver detalles</button>
                         </div>
                     </div>
                 </div>
