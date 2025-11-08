@@ -1,0 +1,155 @@
+{% extends 'utils/base.html' %}
+{% load static %}
+
+{% block title %}Editar Intereses - BookieWookie{% endblock %}
+
+{% block content %}
+<div class="container-detail">
+    <div class="breadcrumb">
+        <a href="{% url 'configuracion' %}">← Volver a configuración</a>
+    </div>
+
+    <div class="book-main-card">
+        <h1 style="text-align: center; color: #1976d2; margin-bottom: 1rem;">Editar Mis Intereses</h1>
+        
+        <div class="info-text">
+            <p>Selecciona tus géneros literarios favoritos para recibir recomendaciones personalizadas.</p>
+            <p>Puedes seleccionar entre 3 y 10 intereses.</p>
+        </div>
+        
+        {% if messages %}
+            <div class="message-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div id="form-errors" class="message-container"></div>
+        
+        <form method="post" id="interesesForm">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Errores en el formulario:</strong>
+                {{ form.errors }}
+            </div>
+            {% endif %}
+            
+            <div class="detalles-section">
+                <h2>Selecciona tus géneros favoritos</h2>
+                <div class="interests-grid">
+                    {% for choice in form.intereses_usuario %}
+                    <div class="interest-item {% if choice.data.selected %}selected{% endif %}" onclick="toggleInterest(this)">
+                        {{ choice.tag }}
+                        <label>{{ choice.choice_label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="requirements">
+                    <span id="contador">0</span> géneros seleccionados (mínimo 3, máximo 10)
+                </div>
+            </div>
+            
+            <div class="form-buttons">
+                <a href="{% url 'configuracion' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary" id="submitBtn">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Página cargada - inicializando intereses');
+    
+    const form = document.getElementById('interesesForm');
+    const contador = document.getElementById('contador');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorContainer = document.getElementById('form-errors');
+    
+    function actualizarContador() {
+        const seleccionados = form.querySelectorAll('input[type="checkbox"]:checked').length;
+        console.log('Intereses seleccionados:', seleccionados);
+        contador.textContent = seleccionados;
+        
+        if (seleccionados >= 3 && seleccionados <= 10) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            contador.style.color = '#4caf50';
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.6';
+            contador.style.color = '#f44336';
+        }
+    }
+
+    actualizarContador();
+    
+    const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', actualizarContador);
+    });
+    
+    form.addEventListener('submit', function(e) {
+        console.log('Formulario enviado');
+        errorContainer.innerHTML = '';
+        const seleccionados = form.querySelectorAll('input[type="checkbox"]:checked').length;
+        
+        if (seleccionados < 3) {
+            e.preventDefault();
+            const div = document.createElement("div");
+            div.className = "alert alert-danger";
+            div.textContent = "Por favor selecciona al menos 3 géneros.";
+            errorContainer.appendChild(div);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+        
+        if (seleccionados > 10) {
+            e.preventDefault();
+            const div = document.createElement("div");
+            div.className = "alert alert-danger";
+            div.textContent = "Puedes seleccionar máximo 10 intereses.";
+            errorContainer.appendChild(div);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+        
+        console.log('Formulario válido, enviando...');
+        return true;
+    });
+});
+
+function toggleInterest(element) {
+    const checkbox = element.querySelector('input[type="checkbox"]');
+    const errorContainer = document.getElementById('form-errors');
+    
+    const checkedBoxes = document.querySelectorAll('.interest-item input[type="checkbox"]:checked');
+    
+    if (!checkbox.checked && checkedBoxes.length >= 10) {
+        errorContainer.innerHTML = '';
+        const div = document.createElement("div");
+        div.className = "alert alert-warning";
+        div.textContent = "Puedes seleccionar máximo 10 intereses.";
+        errorContainer.appendChild(div);
+        
+        setTimeout(() => {
+            errorContainer.innerHTML = '';
+        }, 3000);
+        return;
+    }
+    
+    checkbox.checked = !checkbox.checked;
+    checkbox.dispatchEvent(new Event('change')); 
+    if (checkbox.checked) {
+        element.classList.add('selected');
+    } else {
+        element.classList.remove('selected');
+    }
+}
+</script>
+{% endblock %}

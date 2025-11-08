@@ -1,0 +1,138 @@
+{% extends 'utils/base.html' %}
+{% load static %}
+
+{% block title %}Editar Perfil - BookieWookie{% endblock %}
+
+{% block content %}
+<div class="container-detail">
+    <div class="breadcrumb">
+        <a href="{% url 'configuracion' %}">← Volver a configuración</a>
+    </div>
+
+    <div class="book-main-card">
+        <h1 style="text-align: center; color: #1976d2; margin-bottom: 2rem;">Editar Mi Perfil</h1>
+        
+        {% if messages %}
+            <div class="message-container" style="margin-bottom: 1.5rem;">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div id="form-errors" class="message-container"></div>
+        
+        <form method="post" id="perfilForm">
+            {% csrf_token %}
+            
+            <div class="detalles-section">
+                <h2>Información Personal</h2>
+                
+                <div class="form-group">
+                    <label for="{{ form.nombre_completo.id_for_label }}">{{ form.nombre_completo.label }}</label>
+                    {{ form.nombre_completo }}
+                    {% if form.nombre_completo.errors %}
+                        <div class="field-errors">
+                            {% for error in form.nombre_completo.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="detalles-section" style="margin-top: 2rem;">
+                <h2>Información Académica</h2>
+                
+                <div class="form-group">
+                    <label for="{{ form.universidad.id_for_label }}">{{ form.universidad.label }}</label>
+                    {{ form.universidad }}
+                    {% if form.universidad.errors %}
+                        <div class="field-errors">
+                            {% for error in form.universidad.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.nivel_academico.id_for_label }}">{{ form.nivel_academico.label }}</label>
+                    {{ form.nivel_academico }}
+                    {% if form.nivel_academico.errors %}
+                        <div class="field-errors">
+                            {% for error in form.nivel_academico.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.carrera.id_for_label }}">{{ form.carrera.label }}</label>
+                    {{ form.carrera }}
+                    {% if form.carrera.errors %}
+                        <div class="field-errors">
+                            {% for error in form.carrera.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-buttons">
+                <a href="{% url 'configuracion' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('perfilForm');
+    const errorContainer = document.getElementById('form-errors');
+
+    form.addEventListener('submit', function(e) {
+        errorContainer.innerHTML = "";
+        let errors = [];
+
+        const nombreCompleto = document.querySelector('input[name="nombre_completo"]');
+        const universidad = document.querySelector('select[name="universidad"]');
+        const nivelAcademico = document.querySelector('select[name="nivel_academico"]');
+        const carrera = document.querySelector('input[name="carrera"]');
+
+        if (nombreCompleto && !nombreCompleto.value.trim()) {
+            errors.push("El nombre completo es obligatorio.");
+        }
+
+        if (universidad && !universidad.value) {
+            errors.push("Debes seleccionar una universidad.");
+        }
+
+        if (nivelAcademico && !nivelAcademico.value) {
+            errors.push("Debes seleccionar un nivel académico.");
+        }
+
+        if (carrera && !carrera.value.trim()) {
+            errors.push("La carrera es obligatoria.");
+        }
+
+        if (errors.length > 0) {
+            e.preventDefault();
+            errors.forEach(msg => {
+                const div = document.createElement("div");
+                div.className = "alert alert-danger";
+                div.textContent = msg;
+                errorContainer.appendChild(div);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

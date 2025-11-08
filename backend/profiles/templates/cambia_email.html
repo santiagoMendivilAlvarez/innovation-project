@@ -1,0 +1,150 @@
+{% extends 'utils/base.html' %}
+{% load static %}
+
+{% block title %}Cambiar Email - BookieWookie{% endblock %}
+
+{% block content %}
+<div class="container-detail">
+    <div class="breadcrumb">
+        <a href="{% url 'configuracion' %}">← Volver a configuración</a>
+    </div>
+
+    <div class="book-main-card">
+        <h1 style="text-align: center; color: #1976d2; margin-bottom: 2rem;">Cambiar Correo Electrónico</h1>
+        
+        <div id="form-errors" class="message-container"></div>
+        
+        <div class="info-section" style="margin-bottom: 2rem;">
+            <p>Tu correo electrónico actual es: <strong>{{ user.email }}</strong></p>
+            <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+                Al cambiar tu correo, se enviará un código de verificación a la nueva dirección.
+            </p>
+        </div>
+        
+        <form method="post" id="emailForm" action="{% url 'cambia_email' %}">
+            {% csrf_token %}
+            
+            <div class="detalles-section">
+                <h2>Nuevo Correo Electrónico</h2>
+                
+                <div class="form-group">
+                    <label for="id_new_email">Nuevo correo electrónico</label>
+                    <input type="email" 
+                           name="new_email" 
+                           id="id_new_email" 
+                           class="form-control" 
+                           placeholder="nuevoemail@ejemplo.com"
+                           required>
+                    {% if form.new_email.errors %}
+                        <div class="field-errors">
+                            {% for error in form.new_email.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_confirm_email">Confirmar nuevo correo</label>
+                    <input type="email" 
+                           name="confirm_email" 
+                           id="id_confirm_email" 
+                           class="form-control" 
+                           placeholder="nuevoemail@ejemplo.com"
+                           required>
+                    {% if form.confirm_email.errors %}
+                        <div class="field-errors">
+                            {% for error in form.confirm_email.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="detalles-section" style="margin-top: 2rem;">
+                <h2>Confirma tu Contraseña</h2>
+                
+                <div class="form-group">
+                    <label for="id_password">Contraseña actual</label>
+                    <input type="password" 
+                           name="password" 
+                           id="id_password" 
+                           class="form-control" 
+                           placeholder="Ingresa tu contraseña actual"
+                           required>
+                    {% if form.password.errors %}
+                        <div class="field-errors">
+                            {% for error in form.password.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <small style="color: #666; display: block; margin-top: 0.5rem;">
+                        Por seguridad, necesitamos verificar tu contraseña actual.
+                    </small>
+                </div>
+            </div>
+            
+            <div class="form-buttons">
+                <a href="{% url 'configuracion' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Cambiar Email</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('emailForm');
+    const errorContainer = document.getElementById('form-errors');
+
+    form.addEventListener('submit', function(e) {
+        errorContainer.innerHTML = "";
+        let errors = [];
+
+        const newEmail = document.getElementById('id_new_email');
+        const confirmEmail = document.getElementById('id_confirm_email');
+        const password = document.getElementById('id_password');
+
+        // Validar email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (newEmail && !newEmail.value.trim()) {
+            errors.push("El nuevo correo electrónico es obligatorio.");
+        } else if (newEmail && !emailRegex.test(newEmail.value.trim())) {
+            errors.push("Por favor, ingresa un correo electrónico válido.");
+        }
+
+        if (confirmEmail && !confirmEmail.value.trim()) {
+            errors.push("Debes confirmar el nuevo correo electrónico.");
+        }
+
+        if (newEmail && confirmEmail && newEmail.value.trim().toLowerCase() !== confirmEmail.value.trim().toLowerCase()) {
+            errors.push("Los correos electrónicos no coinciden.");
+            newEmail.style.borderColor = '#f44336';
+            confirmEmail.style.borderColor = '#f44336';
+        } else if (newEmail && confirmEmail) {
+            newEmail.style.borderColor = '';
+            confirmEmail.style.borderColor = '';
+        }
+
+        if (password && !password.value) {
+            errors.push("Debes ingresar tu contraseña actual.");
+        }
+
+        if (errors.length > 0) {
+            e.preventDefault();
+            errors.forEach(msg => {
+                const div = document.createElement("div");
+                div.className = "alert alert-error";
+                div.textContent = msg;
+                errorContainer.appendChild(div);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
