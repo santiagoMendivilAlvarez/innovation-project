@@ -93,7 +93,6 @@ def books(request: HttpRequest) -> HttpResponse:
     Returns:
         HttpResponse: The rendered response containing all books and users.
     """
-    books = Libro.objects.all()
     categorias = Categoria.objects.filter(
         activa=True
     ).annotate(
@@ -107,19 +106,19 @@ def books(request: HttpRequest) -> HttpResponse:
             disponible=True
         ).order_by('-calificacion')[:6]
 
+        # Check favorite status for each book if user is authenticated
+        if request.user.is_authenticated:
+            for libro in libros_destacados:
+                libro.is_favorite = Favorito.objects.filter(
+                    usuario=request.user,
+                    libro=libro
+                ).exists()
+
         categorias_con_libros.append({
             'categoria': categoria,
             'libros': libros_destacados,
             'total': categoria.total_libros,
         })
-    for l in libros_destacados:
-        if request.user.is_authenticated:
-            l.is_favorite = Favorito.objects.filter(
-                usuario=request.user,
-                libro=l
-            ).exists()
-        else:
-            l.is_favorite = False
 
     context = {
         'categorias_con_libros': categorias_con_libros,
@@ -629,3 +628,95 @@ def similar_books_view(request, libro_id):
     return render(request, 'recomendaciones/similar_books.html', {
         'similar_books': similares
     })
+
+
+@login_required
+@require_http_methods(["POST"])
+def agregar_favorito(request: HttpRequest, libro_id: int) -> JsonResponse:
+    """
+    API endpoint to add a book to user favorites.
+    
+    Args:
+        request (HttpRequest): The HTTP request object.
+        libro_id (int): The ID of the book to add to favorites.
+        
+    Returns:
+        JsonResponse: Success or error message.
+    """
+    try:
+        libro = get_object_or_404(Libro, id=libro_id)
+        
+        # Check if already in favorites
+        favorito_existente = Favorito.objects.filter(
+            usuario=request.user,
+            libro=libro
+        ).exists()
+        
+        if favorito_existente:
+            return JsonResponse({
+                'success': False,
+                'message': 'Este libro ya está en tus favoritos'
+            }, status=400)
+        
+        # Create favorite
+        Favorito.objects.create(
+            usuario=request.user,
+            libro=libro
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'"{libro.titulo}" ha sido agregado a tus favoritos',
+            'libro_id': libro_id,
+            'is_favorite': True
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al agregar a favoritos: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def remover_favorito(request: HttpRequest, libro_id: int) -> JsonResponse:
+    """
+    API endpoint to remove a book from user favorites.
+    
+    Args:
+        request (HttpRequest): The HTTP request object.
+        libro_id (int): The ID of the book to remove from favorites.
+        
+    Returns:
+        JsonResponse: Success or error message.
+    """
+    try:
+        libro = get_object_or_404(Libro, id=libro_id)
+        
+        # Find and delete favorite
+        favorito = Favorito.objects.filter(
+            usuario=request.user,
+            libro=libro
+        ).first()
+        
+        if not favorito:
+            return JsonResponse({
+                'success': False,
+                'message': 'Este libro no está en tus favoritos'
+            }, status=400)
+        
+        favorito.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'"{libro.titulo}" ha sido removido de tus favoritos',
+            'libro_id': libro_id,
+            'is_favorite': False
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al remover de favoritos: {str(e)}'
+        }, status=500)

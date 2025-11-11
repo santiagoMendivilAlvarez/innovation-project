@@ -20,7 +20,7 @@
                     <!-- Grid de Libros -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem;">
                         {% for libro in cat_data.libros %}
-                                <div style="background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s; border: 1px solid #e0e0e0; cursor: pointer; text-align: center; height: 100%;">
+                                <div style="background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s; border: 1px solid #e0e0e0; cursor: pointer; text-align: center; height: 100%; position: relative;">
                                     <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; margin-bottom: 0.75rem; overflow: hidden;">
                                         {% if libro.imagen_url %}
                                             <img src="{{ libro.imagen_url }}" alt="{{ libro.titulo }}" style="width: 100%; height: 100%; object-fit: cover;">
@@ -28,18 +28,29 @@
                                             📚
                                         {% endif %}
                                     </div>
-                                    {% if libro.is_favorite %}
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="pink" class="bi bi-heart-fill" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
-                                    </svg>
-                                    {% else %}
-                                    <button style="background: none; border: none; padding: 0; cursor: pointer;" title="Agregar a favoritos"
-                                        onclick="addFavorite('{% url 'agregar_favorito' libro.id %}')">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                                            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
-                                            </svg>
-                                    </button>
-                                    {% endif %}
+                                    
+                                    <!-- Heart Icon for Favorites -->
+                                    <div style="position: absolute; top: 8px; right: 8px;">
+                                        {% if user.is_authenticated %}
+                                            {% if libro.is_favorite %}
+                                                <button class="favorite-btn" data-book-id="{{ libro.id }}" data-is-favorite="true" 
+                                                        style="background: none; border: none; padding: 4px; cursor: pointer; border-radius: 50%; background-color: rgba(255, 255, 255, 0.9);" 
+                                                        title="Remover de favoritos">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#e91e63" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                                                        <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
+                                                    </svg>
+                                                </button>
+                                            {% else %}
+                                                <button class="favorite-btn" data-book-id="{{ libro.id }}" data-is-favorite="false"
+                                                        style="background: none; border: none; padding: 4px; cursor: pointer; border-radius: 50%; background-color: rgba(255, 255, 255, 0.9);" 
+                                                        title="Agregar a favoritos">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#666" class="bi bi-heart" viewBox="0 0 16 16">
+                                                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
+                                                    </svg>
+                                                </button>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
                                     
                                     <h4 style="font-size: 0.8rem; font-weight: 600; color: #333; margin: 0 0 0.4rem 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                         {{ libro.titulo|truncatewords:5 }}
@@ -73,6 +84,7 @@
 </div>
 
 <script>
+// CSRF Token function
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -88,27 +100,181 @@ function getCookie(name) {
     return cookieValue;
 }
 
-const addFavorite = async (url) => {
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Accept': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log("Respuesta:", data);
-        } else {
-            const errText = await response.text();
-            console.error("Error al agregar a favoritos:", response.status, errText);
-        }
-    } catch (error) {
-        console.error("Error en la solicitud:", error);
+// Show custom confirmation modal
+function showConfirmationModal(title, message, onConfirm, onCancel) {
+    // Remove existing modal if any
+    const existingModal = document.getElementById('favoriteModal');
+    if (existingModal) {
+        existingModal.remove();
     }
-};
+
+    // Create modal HTML
+    const modal = document.createElement('div');
+    modal.id = 'favoriteModal';
+    modal.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+            <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                <h3 style="margin: 0 0 1rem 0; color: #333; font-size: 1.2rem;">${title}</h3>
+                <p style="margin: 0 0 1.5rem 0; color: #666; line-height: 1.5;">${message}</p>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button id="cancelBtn" style="padding: 0.5rem 1rem; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; color: #666;">
+                        Cancelar
+                    </button>
+                    <button id="confirmBtn" style="padding: 0.5rem 1rem; border: none; background: #1976d2; color: white; border-radius: 6px; cursor: pointer;">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Add event listeners
+    document.getElementById('cancelBtn').onclick = () => {
+        modal.remove();
+        if (onCancel) onCancel();
+    };
+
+    document.getElementById('confirmBtn').onclick = () => {
+        modal.remove();
+        if (onConfirm) onConfirm();
+    };
+
+    // Close on outside click
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.remove();
+            if (onCancel) onCancel();
+        }
+    };
+}
+
+// Show notification
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        background: ${type === 'success' ? '#4caf50' : '#f44336'};
+        color: white;
+        border-radius: 6px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 1001;
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    document.body.appendChild(notification);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Handle favorite button clicks
+async function handleFavoriteAction(bookId, isFavorite, bookTitle) {
+    const action = isFavorite ? 'remove' : 'add';
+    const actionText = isFavorite ? 'remover de' : 'agregar a';
+    const title = isFavorite ? 'Remover de Favoritos' : 'Agregar a Favoritos';
+    const message = `¿Estás seguro de que quieres ${actionText} tus favoritos el libro "${bookTitle}"?`;
+
+    showConfirmationModal(
+        title,
+        message,
+        async () => {
+            // User confirmed
+            try {
+                const url = isFavorite 
+                    ? `/favoritos/remover/${bookId}/`
+                    : `/favoritos/agregar/${bookId}/`;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Update UI
+                    updateHeartIcon(bookId, data.is_favorite);
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.message || 'Error en la operación', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error de conexión. Inténtalo de nuevo.', 'error');
+            }
+        },
+        () => {
+            // User cancelled - do nothing
+            console.log('User cancelled the action');
+        }
+    );
+}
+
+// Update heart icon
+function updateHeartIcon(bookId, isFavorite) {
+    const button = document.querySelector(`[data-book-id="${bookId}"]`);
+    if (!button) return;
+
+    const svg = button.querySelector('svg');
+    button.setAttribute('data-is-favorite', isFavorite.toString());
+    
+    if (isFavorite) {
+        button.title = 'Remover de favoritos';
+        svg.innerHTML = '<path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>';
+        svg.setAttribute('fill', '#e91e63');
+        svg.classList.remove('bi-heart');
+        svg.classList.add('bi-heart-fill');
+    } else {
+        button.title = 'Agregar a favoritos';
+        svg.innerHTML = '<path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>';
+        svg.setAttribute('fill', '#666');
+        svg.classList.remove('bi-heart-fill');
+        svg.classList.add('bi-heart');
+    }
+}
+
+// Add event listeners when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers to all favorite buttons
+    document.querySelectorAll('.favorite-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent triggering parent click events
+            
+            const bookId = this.getAttribute('data-book-id');
+            const isFavorite = this.getAttribute('data-is-favorite') === 'true';
+            
+            // Get book title from the card
+            const bookCard = this.closest('[style*="position: relative"]');
+            const bookTitleElement = bookCard.querySelector('h4');
+            const bookTitle = bookTitleElement ? bookTitleElement.textContent.trim() : 'este libro';
+            
+            handleFavoriteAction(bookId, isFavorite, bookTitle);
+        });
+    });
+});
 </script>
 
 {% endblock %}
