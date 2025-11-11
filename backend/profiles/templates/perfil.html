@@ -1,0 +1,100 @@
+{% extends 'utils/base.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil - BookieWookie{% endblock %}
+
+{% block content %}
+<div class="container-detail">
+    <div class="book-main-card">
+        <div class="inicio-ficcion">
+            <div>
+                <a href="{% url 'home' %}" style="color: #666; text-decoration: none;">Inicio</a> / 
+                <span style="color: #1976d2;">Mi Perfil</span>
+            </div>
+            <a href="{% url 'configuracion' %}" class="agregar-btn">
+                ⚙️ Configuración
+            </a>
+        </div>
+
+        <div class="book-header" style="grid-template-columns: 150px 1fr; margin-bottom: 3rem;">
+            <div class="book-cover-section">
+                <div class="book-cover-placeholder" style="width: 150px; height: 150px; border-radius: 50%; font-size: 3.5rem;">
+                    {{ user.nombre_completo|first|upper }}
+                </div>
+            </div>
+            <div class="book-info-section">
+                <h1 style="margin-bottom: 0.5rem;">{{ user.nombre_completo }}</h1>
+                <p class="book-author" style="font-size: 1.1rem; margin-bottom: 1rem;">{{ user.email }}</p>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    {% if user.email_verificado %}
+                    <span style="background: #d4edda; color: #155724; padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500; border: 1px solid #c3e6cb;">
+                        ✓ Email Verificado
+                    </span>
+                    {% endif %}
+                    {% if user.suscripcion_activa %}
+                    <span style="background: #fff3e0; color: #e65100; padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500; border: 1px solid #ffe0b2;">
+                        ⭐ Premium
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="detalles-section">
+            <h2>Estadísticas</h2>
+            <div class="detalles-grid">
+                <div class="detalle-item">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📚</div>
+                    <div class="detalle-label">Libros Comprados</div>
+                    <div class="detalle-value">{{ user.libros_comprados.count|default:"0" }}</div>
+                </div>
+                <div class="detalle-item">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">❤️</div>
+                    <div class="detalle-label">Favoritos</div>
+                    <div class="detalle-value">{{ user.favoritos.count|default:"0" }}</div>
+                </div>
+                <div class="detalle-item">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">💡</div>
+                    <div class="detalle-label">Recomendaciones</div>
+                    <div class="detalle-value">{{ user.recomendaciones.count|default:"0" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detalles-section">
+            <h2>Información Académica</h2>
+            <div class="detalles-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div class="detalle-item" style="text-align: left;">
+                    <div class="detalle-label">Universidad</div>
+                    <div class="detalle-value" style="font-size: 1rem;">{{ user.get_universidad_display }}</div>
+                </div>
+                <div class="detalle-item" style="text-align: left;">
+                    <div class="detalle-label">Nivel Académico</div>
+                    <div class="detalle-value" style="font-size: 1rem;">{{ user.get_nivel_academico_display }}</div>
+                </div>
+                <div class="detalle-item" style="text-align: left;">
+                    <div class="detalle-label">Carrera</div>
+                    <div class="detalle-value" style="font-size: 1rem;">{{ user.carrera }}</div>
+                </div>
+                <div class="detalle-item" style="text-align: left;">
+                    <div class="detalle-label">Miembro desde</div>
+                    <div class="detalle-value" style="font-size: 1rem;">{{ user.fecha_registro|date:"d/m/Y" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detalles-section">
+            <h2>Mis Intereses</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                {% for interes in user.get_intereses_list %}
+                    <span style="padding: 0.6rem 1.2rem; background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%); color: white; border-radius: 20px; font-size: 0.9rem; font-weight: 500;">
+                        {{ interes }}
+                    </span>
+                {% empty %}
+                    <p style="color: #999; font-style: italic;">No has seleccionado intereses aún. <a href="{% url 'editar_intereses' %}" style="color: #1976d2;">Agregar intereses</a></p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

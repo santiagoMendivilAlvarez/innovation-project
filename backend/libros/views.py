@@ -139,18 +139,31 @@ def home_view(request: HttpRequest) -> HttpResponse:
         HttpResponse: The rendered response for the home view.
     """
     context = {}
-    if request.user.is_authenticated:
-        context.update({
-            'intereses': request.user.get_intereses_list(),
-            'total_intereses': len(request.user.get_intereses_list()),
-            'intereses_display': request.user.get_intereses_display(),
-            'email_verified': request.user.email_verificado
-        })
-    last_ten_books = Libro.objects.all().order_by('-fecha_creacion')[:10]
-    
+    explore_books = []
+
+    # Get popular books from Google Books API to display
+    try:
+        # Search for popular/trending books across different categories
+        search_queries = ['bestseller 2024', 'popular fiction', 'technology books', 'science']
+        for query in search_queries:
+            google_result = google_api.fetch_book_details(query)
+            if isinstance(google_result, list) and google_result:
+                explore_books.extend(google_result[:3])
+            elif isinstance(google_result, dict) and 'books' in google_result:
+                explore_books.extend(google_result['books'][:3])
+            if len(explore_books) >= 12:
+                break
+
+        # Limit to 12 books
+        explore_books = explore_books[:12]
+    except Exception as e:
+        print(f"Error fetching explore books: {e}")
+        explore_books = []
+
     context.update({
         'user': request.user,
-        'last_ten_books': last_ten_books
+        'explore_books': explore_books,
+        'has_explore_books': len(explore_books) > 0
     })
     return render(request, 'dashboard.html', context)
 
@@ -250,10 +263,11 @@ def book_search_view(request):
             all_books.append({
                 'source': 'Database',
                 'book_id': book.id,
+                'id': book.id,  # Also add as 'id' for template compatibility
                 'title': book.titulo,
                 'authors': [book.autor] if book.autor else [],
                 'description': book.descripcion,
-                'thumbnail': book.imagen_portada.url if book.imagen_portada else '',
+                'thumbnail': book.imagen_url if book.imagen_url else '',
                 'isbn': book.isbn,
                 'is_local': True,
                 'book_object': book
@@ -268,9 +282,11 @@ def book_search_view(request):
                 google_error = google_result['error']
             elif isinstance(google_result, list):
                 for book in google_result:
+                    book_id = book.get('id', 'unknown')
                     all_books.append({
                         'source': 'Google Books',
-                        'book_id': book.get('id', 'unknown'),
+                        'book_id': book_id,
+                        'id': book_id,  # Also add as 'id' for template compatibility
                         'title': book.get('title', 'N/A'),
                         'authors': book.get('authors', []),
                         'description': book.get('description', 'N/A'),
@@ -294,9 +310,11 @@ def book_search_view(request):
                 amazon_error = amazon_result['error']
             elif isinstance(amazon_result, dict) and 'books' in amazon_result:
                 for book in amazon_result['books']:
+                    book_id = book.get('asin', book.get('amazon_url', '').split('/')[-1] if 'amazon_url' in book else 'unknown')
                     all_books.append({
                         'source': 'Amazon',
-                        'book_id': book.get('asin', book.get('amazon_url', '').split('/')[-1] if 'amazon_url' in book else 'unknown'),
+                        'book_id': book_id,
+                        'id': book_id,  # Also add as 'id' for template compatibility
                         'title': book.get('title', 'N/A'),
                         'authors': book.get('authors', []),
                         'description': book.get('description', 'N/A'),
@@ -396,89 +414,201 @@ def amazon_book_details(request, asin):
     
     return render(request, 'amazon_book_details.html', context)
 
-
 def book_detail_view(request, book_id):
     """
-    Book detail page - shows basic book information.
+    Book detail page - shows complete book information.
+    Supports Google Books API, Amazon API, and local database books.
+    Auto-detects if book_id is numeric (database) or string (API).
     """
-    # For now, we'll just show the title from the query parameter
-    book_title = request.GET.get('title', 'Libro sin título')
-    book_author = request.GET.get('author', 'Autor desconocido')
-    book_source = request.GET.get('source', 'Fuente desconocida')
-    book_thumbnail = request.GET.get('thumbnail', '')
-    book_price = request.GET.get('price', 'N/A')
+    source = request.GET.get('source', None)
+    
+    if not source:
+        try:
+            int(book_id)
+            if Libro.objects.filter(id=book_id).exists():
+                source = 'database'
+            else:
+                source = 'google'  
+        except (ValueError, TypeError):
+            source = 'google'
+    
+    book = None
+    error = None
+    
+    if source == 'google':
+        try:
+            google_api = GoogleBooksAPI()
+            book_data = google_api.get_book_by_id(book_id)
+
+            if isinstance(book_data, dict) and 'error' in book_data:
+                error = book_data['error']
+            else:
+                book = book_data
+
+        except Exception as e:
+            error = f'Error al cargar desde Google Books: {str(e)}'
+            print(f"[DEBUG] Google Books error: {e}")
+            print(f"[DEBUG] Book ID: {book_id}")
+            
+    elif source == 'amazon':
+        try:
+            amazon_api = AmazonBooksAPI()
+            book_data = amazon_api.get_book_details(book_id)
+            
+            if isinstance(book_data, dict) and 'error' in book_data:
+                error = 'No se pudo cargar la información del libro de Amazon'
+            else:
+                book = {
+                    'title': book_data.get('title', 'N/A'),
+                    'authors': book_data.get('authors', []),
+                    'description': book_data.get('description', 'N/A'),
+                    'thumbnail': book_data.get('image_url', ''),
+                    'categories': book_data.get('categories', []),
+                    'published_date': book_data.get('publication_date', 'N/A'),
+                    'publishedDate': book_data.get('publication_date', 'N/A'),
+                    'page_count': book_data.get('pages', 'N/A'),
+                    'pageCount': book_data.get('pages', 'N/A'),
+                    'publisher': book_data.get('publisher', 'N/A'),
+                    'price': book_data.get('price', 'N/A'),
+                    'rating': book_data.get('rating', 'N/A'),
+                    'amazon_url': book_data.get('amazon_url', '#'),
+                }
+        except Exception as e:
+            error = f'Error al cargar desde Amazon: {str(e)}'
+            print(f"[DEBUG] Amazon error: {e}")
+    
+    elif source == 'database':
+        try:
+            libro = Libro.objects.get(id=book_id)
+            book = {
+                'title': libro.titulo,
+                'authors': [libro.autor] if libro.autor else [],
+                'description': libro.descripcion,
+                'thumbnail': libro.imagen_url,
+                'categories': [libro.categoria.nombre] if libro.categoria else [],
+                'published_date': libro.fecha_publicacion.strftime('%Y-%m-%d') if libro.fecha_publicacion else None,
+                'publishedDate': libro.fecha_publicacion.strftime('%Y-%m-%d') if libro.fecha_publicacion else None,
+                'page_count': libro.paginas,
+                'pageCount': libro.paginas,
+                'publisher': 'N/A',
+                'price': float(libro.precio) if libro.precio else None,
+                'rating': libro.calificacion,
+            }
+        except Libro.DoesNotExist:
+            error = 'Libro no encontrado en la base de datos'
+        except Exception as e:
+            error = f'Error al cargar desde base de datos: {str(e)}'
+            print(f"[DEBUG] Database error: {e}")
+    
+    else:
+        error = 'Fuente de datos no válida'
+
+    # Debug info
+    print(f"[DEBUG] Source: {source}")
+    print(f"[DEBUG] Book ID: {book_id}")
+    print(f"[DEBUG] Book data exists: {book is not None}")
+    if book:
+        print(f"[DEBUG] Book title: {book.get('title', 'N/A')}")
 
     context = {
         'user': request.user,
-        'book': {
-            'id': book_id,
-            'title': book_title,
-            'authors': [book_author] if book_author != 'Autor desconocido' else [],
-            'source': book_source,
-            'thumbnail': book_thumbnail,
-            'price': book_price,
-        }
+        'book': book,
+        'source': source,
+        'error': error
     }
 
     return render(request, 'book_detail.html', context)
 
-def categorias_listado(request: HttpRequest) -> HttpResponse:
-    """
-    Muestra todas las categorías con estadísticas.
-    """
-    categorias = Categoria.objects.filter(
-        activa=True
-    ).annotate(
-        total_libros=Count('libros', filter=Q(libros__disponible=True)),
-        calificacion_promedio=Avg('libros__calificacion', filter=Q(libros__disponible=True))
-    ).order_by('orden', 'nombre')
-
-    context = {
-        'categorias': categorias,
-        'total_categorias': categorias.count(),
-        'total_libros': Libro.objects.filter(disponible=True).count(),
-    }
-    return render(request, 'categorias_listado.html', context)
-
-
 def categoria_detalle(request: HttpRequest, categoria_id: int) -> HttpResponse:
     """
     Muestra todos los libros de una categoría específica.
+    Ahora integra IA para buscar recomendaciones en Google Books API.
     """
+    from core.services.ai_recommendations import AIRecommendationService
+
     categoria = get_object_or_404(Categoria, id=categoria_id, activa=True)
-    
+
     # Obtener parámetros de filtrado
     orden = request.GET.get('orden', '-calificacion')
     busqueda = request.GET.get('busqueda', '').strip()
-    
+
     # Validar orden
     ordenes_validas = ['titulo', '-titulo', 'precio', '-precio', 'calificacion', '-calificacion']
     if orden not in ordenes_validas:
         orden = '-calificacion'
-    
-    # Obtener libros
-    libros = categoria.libros.filter(disponible=True)
-    
+
+    # Obtener libros de la base de datos local
+    libros_db = categoria.libros.filter(disponible=True)
+
     if busqueda:
-        libros = libros.filter(
+        libros_db = libros_db.filter(
             Q(titulo__icontains=busqueda) |
             Q(autor__icontains=busqueda) |
             Q(descripcion__icontains=busqueda)
         )
-    
-    libros = libros.order_by(orden)
-    
+
+    libros_db = libros_db.order_by(orden)
+
+    # Obtener recomendaciones de IA + Google Books (personalizadas por usuario)
+    ai_service = AIRecommendationService()
+    libros_google = []
+    try:
+        # Pass user to get personalized recommendations
+        libros_google = ai_service.get_books_by_category(
+            category_name=categoria.nombre,
+            num_books=12,
+            user=request.user if request.user.is_authenticated else None
+        )
+    except Exception as e:
+        print(f"Error obteniendo recomendaciones de IA para {categoria.nombre}: {e}")
+
+    # Combinar libros de base de datos y Google Books
+    all_books = []
+
+    # Agregar libros de base de datos
+    for libro in libros_db:
+        all_books.append({
+            'source': 'database',
+            'id': libro.id,
+            'title': libro.titulo,
+            'authors': [libro.autor] if libro.autor else [],
+            'thumbnail': libro.imagen_url,
+            'description': libro.descripcion,
+            'price': float(libro.precio) if libro.precio else None,
+            'rating': libro.calificacion,
+            'is_local': True
+        })
+
+    # Agregar libros de Google Books
+    for book in libros_google:
+        all_books.append({
+            'source': 'google',
+            'id': book.get('id', 'unknown'),
+            'title': book.get('title', 'N/A'),
+            'authors': book.get('authors', []),
+            'thumbnail': book.get('thumbnail', ''),
+            'description': book.get('description', 'N/A'),
+            'publisher': book.get('publisher', 'N/A'),
+            'publishedDate': book.get('publishedDate', 'N/A'),
+            'pageCount': book.get('pageCount', 'N/A'),
+            'categories': book.get('categories', []),
+            'previewLink': book.get('previewLink', '#'),
+            'is_local': False
+        })
+
     # Estadísticas
     stats = {
-        'total_libros': libros.count(),
-        'calificacion_promedio': libros.aggregate(Avg('calificacion'))['calificacion__avg'] or 0,
-        'precio_minimo': libros.aggregate(models.Min('precio'))['precio__min'] or 0,
-        'precio_maximo': libros.aggregate(models.Max('precio'))['precio__max'] or 0,
+        'total_libros': len(all_books),
+        'libros_database': len(libros_db),
+        'libros_google': len(libros_google),
+        'calificacion_promedio': libros_db.aggregate(Avg('calificacion'))['calificacion__avg'] or 0,
+        'precio_minimo': libros_db.aggregate(models.Min('precio'))['precio__min'] or 0,
+        'precio_maximo': libros_db.aggregate(models.Max('precio'))['precio__max'] or 0,
     }
-    
+
     context = {
         'categoria': categoria,
-        'libros': libros,
+        'libros': all_books,
         'estadisticas': stats,
         'busqueda': busqueda,
         'orden': orden,

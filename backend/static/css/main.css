@@ -1251,11 +1251,25 @@ select.form-control {
     margin-bottom: 4rem;
 }
 
+.recommendations-section {
+    margin-bottom: 4rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8f0fe 100%);
+    border-radius: 16px;
+}
+
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+}
+
+.section-subtitle {
+    color: #666;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    font-weight: normal;
 }
 
 .section-title {
@@ -1286,17 +1300,24 @@ select.form-control {
     gap: 1.5rem;
 }
 
+.book-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
 .book-card {
     background: white;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    transition: transform 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s;
     cursor: pointer;
 }
 
 .book-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 
 .book-cover {
@@ -1309,6 +1330,16 @@ select.form-control {
     color: white;
     font-size: 3rem;
     position: relative;
+    overflow: hidden;
+}
+
+.book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .book-info {
@@ -1370,6 +1401,12 @@ select.form-control {
 /* ===================================
    BOOK SEARCH PAGE (SEARCH.HTML)
    =================================== */
+.search-page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
 .search-header {
     background: white;
     padding: 2rem;
@@ -1382,6 +1419,46 @@ select.form-control {
     display: flex;
     gap: 1rem;
     margin-bottom: 1rem;
+}
+
+.search-header .search-input {
+    background: white;
+    border: 2px solid #e0e0e0;
+    color: #333;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+    flex: 1;
+}
+
+.search-header .search-input::placeholder {
+    color: #999;
+}
+
+.search-header .search-input:focus {
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.search-header .search-btn {
+    position: static;
+    background: #1976d2;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.search-header .search-btn:hover {
+    background: #1565c0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .search-info {
@@ -2279,6 +2356,192 @@ select.form-control {
 .explorar-mas-link:hover {
     text-decoration: underline;
 }
+/* ===================================
+   BOOK DETAIL PAGE
+   =================================== */
+
+.detail-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.book-main-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 40px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #1976d2;
+}
+
+.inicio-ficcion {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.agregar-btn {
+    background: white;
+    border: 1px solid #1976d2;
+    color: #1976d2;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.agregar-btn:hover {
+    background: #e3f2fd;
+}
+
+.book-header {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.book-cover-section {
+    width: 100%;
+}
+
+.book-cover-section img {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.book-cover-placeholder {
+    width: 100%;
+    height: 260px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 3rem;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+    .detalle-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(25, 118, 210, 0.3);
+}
+.book-info-section h1 {
+    font-size: 2.5rem;
+    margin: 0 0 10px 0;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.book-info-section .book-author {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 25px;
+}
+
+.book-description {
+    line-height: 1.7;
+    color: #444;
+    text-align: justify;
+    font-size: 0.95rem;
+}
+
+.detalles-section {
+    margin: 40px 0;
+    border-top: 2px solid #f0f0f0;
+    padding-top: 30px;
+}
+
+.detalles-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.detalles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.detalle-item {
+    border: 2px solid #1976d2;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    background: white;
+}
+
+.detalle-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.detalle-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1976d2;
+}
+
+.disponibilidad-section {
+    margin: 40px 0;
+    border-top: 2px solid #f0f0f0;
+    padding-top: 30px;
+}
+
+.disponibilidad-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.placeholder-box {
+    text-align: center;
+    padding: 50px 20px;
+    color: #999;
+    background: #fafafa;
+    border-radius: 12px;
+    border: 2px dashed #e0e0e0;
+}
+
+.placeholder-box p:first-child {
+    font-size: 1.1rem;
+    margin: 0 0 10px 0;
+    color: #666;
+    font-weight: 600;
+}
+
+.placeholder-box p:last-child {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #999;
+}
+
+.libros-relacionados-section {
+    border-top: 2px solid #f0f0f0;
+    padding-top: 30px;
+}
+
+.libros-relacionados-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+    font-weight: 700;
+}
 
 /* ===================================
    RESPONSIVE
@@ -2515,6 +2778,39 @@ select.form-control {
 
     .explorar-subtitulo {
         font-size: 0.95rem;
+    }
+     .book-main-card {
+        padding: 25px;
+    }
+
+    .book-header {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .book-cover-section {
+        max-width: 180px;
+        margin: 0 auto;
+    }
+
+    .detalles-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .book-info-section h1 {
+        font-size: 1.8rem;
+    }
+
+    .inicio-ficcion {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .agregar-btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 
