@@ -44,18 +44,3 @@ class FavoritesListView(ListView):
         context = super().get_context_data(**kwargs)
         context["total_favorites"] = self.get_queryset().count()
         return context
-
-@login_required
-def send_to_favorites(request: HttpRequest, libro_id: int) -> JsonResponse:
-    if request.method == 'POST':
-        try:
-            favorito, created = Favorito.objects.get_or_create(
-                usuario = request.user,
-                libro = Libro.objects.get(id=libro_id),
-            )
-            if created:
-                favorito.save()
-                return JsonResponse({'status': 'success', 'message': 'Libro agregado a favoritos.'})
-            return JsonResponse({'status': 'info', 'message': 'El libro ya está en favoritos.'})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

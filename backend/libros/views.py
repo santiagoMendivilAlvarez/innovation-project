@@ -644,33 +644,26 @@ def agregar_favorito(request: HttpRequest, libro_id: int) -> JsonResponse:
         JsonResponse: Success or error message.
     """
     try:
-        libro = get_object_or_404(Libro, id=libro_id)
-        
-        # Check if already in favorites
+        libro = get_object_or_404(Libro, id=libro_id)        
         favorito_existente = Favorito.objects.filter(
             usuario=request.user,
             libro=libro
         ).exists()
-        
         if favorito_existente:
             return JsonResponse({
                 'success': False,
                 'message': 'Este libro ya está en tus favoritos'
             }, status=400)
-        
-        # Create favorite
         Favorito.objects.create(
             usuario=request.user,
             libro=libro
         )
-        
         return JsonResponse({
             'success': True,
             'message': f'"{libro.titulo}" ha sido agregado a tus favoritos',
             'libro_id': libro_id,
             'is_favorite': True
         })
-        
     except Exception as e:
         return JsonResponse({
             'success': False,
@@ -693,28 +686,22 @@ def remover_favorito(request: HttpRequest, libro_id: int) -> JsonResponse:
     """
     try:
         libro = get_object_or_404(Libro, id=libro_id)
-        
-        # Find and delete favorite
         favorito = Favorito.objects.filter(
             usuario=request.user,
             libro=libro
         ).first()
-        
         if not favorito:
             return JsonResponse({
                 'success': False,
                 'message': 'Este libro no está en tus favoritos'
             }, status=400)
-        
         favorito.delete()
-        
         return JsonResponse({
             'success': True,
             'message': f'"{libro.titulo}" ha sido removido de tus favoritos',
             'libro_id': libro_id,
             'is_favorite': False
         })
-        
     except Exception as e:
         return JsonResponse({
             'success': False,

@@ -29,7 +29,6 @@
                                         {% endif %}
                                     </div>
                                     
-                                    <!-- Heart Icon for Favorites -->
                                     <div style="position: absolute; top: 8px; right: 8px;">
                                         {% if user.is_authenticated %}
                                             {% if libro.is_favorite %}
@@ -84,7 +83,6 @@
 </div>
 
 <script>
-// CSRF Token function
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -100,15 +98,12 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Show custom confirmation modal
 function showConfirmationModal(title, message, onConfirm, onCancel) {
-    // Remove existing modal if any
     const existingModal = document.getElementById('favoriteModal');
     if (existingModal) {
         existingModal.remove();
     }
 
-    // Create modal HTML
     const modal = document.createElement('div');
     modal.id = 'favoriteModal';
     modal.innerHTML = `
@@ -130,7 +125,6 @@ function showConfirmationModal(title, message, onConfirm, onCancel) {
 
     document.body.appendChild(modal);
 
-    // Add event listeners
     document.getElementById('cancelBtn').onclick = () => {
         modal.remove();
         if (onCancel) onCancel();
@@ -141,7 +135,6 @@ function showConfirmationModal(title, message, onConfirm, onCancel) {
         if (onConfirm) onConfirm();
     };
 
-    // Close on outside click
     modal.onclick = (e) => {
         if (e.target === modal) {
             modal.remove();
@@ -150,7 +143,6 @@ function showConfirmationModal(title, message, onConfirm, onCancel) {
     };
 }
 
-// Show notification
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.style.cssText = `
@@ -167,7 +159,6 @@ function showNotification(message, type = 'success') {
     `;
     notification.textContent = message;
 
-    // Add animation styles
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideIn {
@@ -179,14 +170,12 @@ function showNotification(message, type = 'success') {
 
     document.body.appendChild(notification);
 
-    // Remove after 3 seconds
     setTimeout(() => {
         notification.style.animation = 'slideIn 0.3s ease reverse';
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
 
-// Handle favorite button clicks
 async function handleFavoriteAction(bookId, isFavorite, bookTitle) {
     const action = isFavorite ? 'remove' : 'add';
     const actionText = isFavorite ? 'remover de' : 'agregar a';
@@ -197,7 +186,6 @@ async function handleFavoriteAction(bookId, isFavorite, bookTitle) {
         title,
         message,
         async () => {
-            // User confirmed
             try {
                 const url = isFavorite 
                     ? `/favoritos/remover/${bookId}/`
@@ -215,7 +203,6 @@ async function handleFavoriteAction(bookId, isFavorite, bookTitle) {
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    // Update UI
                     updateHeartIcon(bookId, data.is_favorite);
                     showNotification(data.message, 'success');
                 } else {
@@ -227,13 +214,11 @@ async function handleFavoriteAction(bookId, isFavorite, bookTitle) {
             }
         },
         () => {
-            // User cancelled - do nothing
             console.log('User cancelled the action');
         }
     );
 }
 
-// Update heart icon
 function updateHeartIcon(bookId, isFavorite) {
     const button = document.querySelector(`[data-book-id="${bookId}"]`);
     if (!button) return;
@@ -256,17 +241,14 @@ function updateHeartIcon(bookId, isFavorite) {
     }
 }
 
-// Add event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Add click handlers to all favorite buttons
     document.querySelectorAll('.favorite-btn').forEach(button => {
         button.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent triggering parent click events
+            e.stopPropagation(); 
             
             const bookId = this.getAttribute('data-book-id');
             const isFavorite = this.getAttribute('data-is-favorite') === 'true';
             
-            // Get book title from the card
             const bookCard = this.closest('[style*="position: relative"]');
             const bookTitleElement = bookCard.querySelector('h4');
             const bookTitle = bookTitleElement ? bookTitleElement.textContent.trim() : 'este libro';
