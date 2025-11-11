@@ -15,4 +15,6 @@ urlpatterns = [
     path("api/recomendaciones/",          views.api_recommendations,  name='api_recommendaciones'),
     path("amazon/<str:asin>/",            views.amazon_book_details,  name="amazon_book_details"),
     path('libros/<str:book_id>/',         views.book_detail_view,     name='book_detail'),
+    path('favoritos/agregar/<int:libro_id>/', views.agregar_favorito, name='agregar_favorito'),
+    path('favoritos/remover/<int:libro_id>/', views.remover_favorito, name='remover_favorito'),
 ]

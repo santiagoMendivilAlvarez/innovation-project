@@ -9,5 +9,5 @@ urlpatterns = [
     path('configuracion/verificar-nuevo-email/', views.verificar_nuevo_email, name='verificar_nuevo_email'),
     path('configuracion/cambiar-contrasena/', views.cambiar_contrasena_view, name='cambiar_contrasena'),
     path('configuracion/editar-intereses/', views.editar_intereses, name='editar_intereses'),
-    path('mi-biblioteca/', views.mi_biblioteca_view, name='mi_biblioteca'),
+    path('mi-biblioteca/', views.FavoritesListView.as_view(), name='mi_biblioteca'),
 ]
