@@ -1,0 +1,130 @@
+{% extends 'utils/base.html' %}
+{% load static %}
+
+{% block title %}Verificar Nuevo Correo - BookieWookie{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="confirm-card">
+        <div class="card-header">
+            Verificar Nuevo Correo
+        </div>
+        
+        <div class="card-body">
+            <div class="info-section">
+                <p>Hemos enviado un código de verificación de 6 dígitos a:</p>
+                <div class="user-email">
+                    {{ new_email|default:"tu nuevo correo electrónico" }}
+                </div>
+                <p>Revisa tu bandeja de entrada y spam. El código es válido por 10 minutos.</p>
+            </div>
+            
+            {% if messages %}
+                <div class="message-container">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% if attempts_remaining %}
+                <div class="attempts-info">
+                    <span class="attempts-remaining">{{ attempts_remaining }} intento{{ attempts_remaining|pluralize }} restante{{ attempts_remaining|pluralize }}</span>
+                </div>
+            {% endif %}
+            
+            <form method="post" id="confirmForm">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="codigo">Código de verificación</label>
+                    <input type="text" 
+                           id="codigo" 
+                           name="codigo" 
+                           class="code-input"
+                           placeholder="123456"
+                           maxlength="6"
+                           pattern="[0-9]{6}"
+                           autocomplete="one-time-code"
+                           required>
+                </div>
+                
+                <div class="form-buttons">
+                    <a href="{% url 'cambia_email' %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Confirmar Cambio</button>
+                </div>
+            </form>
+            
+            <div class="resend-section">
+                <p>¿No recibiste el código?</p>
+                <div class="countdown" id="countdown">
+                    Enviar nuevo código dentro de <span id="timer">1:20</span> seg
+                </div>
+                <a href="#" class="resend-link disabled" id="resendLink">Reenviar código</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let timeLeft = 80;
+    const timerElement = document.getElementById('timer');
+    const countdownElement = document.getElementById('countdown');
+    const resendLink = document.getElementById('resendLink');
+
+    function updateTimer() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+            countdownElement.style.display = 'none';
+            resendLink.classList.remove('disabled');
+        } else {
+            timeLeft--;
+        }
+    }
+
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
+
+    resendLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (!this.classList.contains('disabled')) {
+            fetch('{% url "cambia_email" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ resend: true })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Código reenviado correctamente');
+                    timeLeft = 80;
+                    countdownElement.style.display = 'block';
+                    resendLink.classList.add('disabled');
+                }
+            });
+        }
+    });
+
+    const codigoInput = document.getElementById('codigo');
+    codigoInput.focus();
+
+    codigoInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value.length === 6) {
+            this.style.borderColor = '#4caf50';
+        } else {
+            this.style.borderColor = '';
+        }
+    });
+});
+</script>
+{% endblock %}

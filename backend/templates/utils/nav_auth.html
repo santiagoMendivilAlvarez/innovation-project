@@ -98,11 +98,11 @@
             </div>
         
             <div class="dropdown-menu">
-                <a href="#perfil" class="dropdown-item">
+                <a href="{% url 'perfil' %}"class="dropdown-item">
                     <span class="dropdown-item-icon">👤</span>
                     Mi Perfil
                 </a>
-                <a href="#configuracion" class="dropdown-item">
+                <a href="{% url 'configuracion' %}"class="dropdown-item">
                     <span class="dropdown-item-icon">⚙️</span>
                     Configuración
                 </a>
@@ -136,8 +136,8 @@
             <a href="{% url 'recomendaciones' %}">Recomendaciones</a>
             <a href="{% url 'libros' %}">Explorar libros</a>
             <a href="{% url 'mi_biblioteca' %}">Mi Biblioteca</a>
-            <a href="#perfil">Mi Perfil</a>
-            <a href="#configuracion">Configuración</a>
+            <a href="{% url 'perfil' %}">Mi Perfil</a>
+            <a href="{% url 'configuracion' %}">Configuración</a>
             <a href="{% url 'logout' %}" style="color: #ffcdd2;">Cerrar Sesión</a>
         </div>
     </div>
