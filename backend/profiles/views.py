@@ -1,4 +1,5 @@
 import json
+from typing import Any
 import random
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -8,6 +9,8 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.views.generic import ListView
+from profiles.models import Favorito
 
 User = get_user_model()
 from .forms import (
