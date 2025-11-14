@@ -1,0 +1,48 @@
+{% extends 'utils/base.html' %}
+{% load static %}
+
+{% block title %}Configuración - BookieWookie{% endblock %}
+
+{% block content %}
+<div class="container-detail">
+    <div class="breadcrumb">
+        <a href="{% url 'perfil' %}">← Volver al perfil</a>
+    </div>
+
+    <div class="book-main-card">
+        <h1 style="text-align: center; color: #1976d2; margin-bottom: 2rem;">Configuración de Cuenta</h1>
+        
+        <div class="detalles-section">
+            <h2>Gestión de Cuenta</h2>
+            <div class="detalles-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                
+                <a href="{% url 'editar_perfil' %}" class="detalle-item" style="text-decoration: none; cursor: pointer; transition: all 0.3s;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👤</div>
+                    <div class="detalle-label">Editar Perfil</div>
+                    <div class="detalle-value" style="font-size: 0.95rem; color: #666;">Actualiza tu información personal</div>
+                </a>
+
+                <a href="{% url 'editar_intereses' %}" class="detalle-item" style="text-decoration: none; cursor: pointer; transition: all 0.3s;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💡</div>
+                    <div class="detalle-label">Mis Intereses</div>
+                    <div class="detalle-value" style="font-size: 0.95rem; color: #666;">Personaliza tus preferencias</div>
+                </a>
+
+                <a href="{% url 'cambia_email' %}" class="detalle-item" style="text-decoration: none; cursor: pointer; transition: all 0.3s;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✉️</div>
+                    <div class="detalle-label">Cambiar Correo</div>
+                    <div class="detalle-value" style="font-size: 0.95rem; color: #666;">Actualiza tu email</div>
+                </a>
+
+                <a href="{% url 'cambiar_contrasena' %}" class="detalle-item" style="text-decoration: none; cursor: pointer; transition: all 0.3s;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔒</div>
+                    <div class="detalle-label">Cambiar Contraseña</div>
+                    <div class="detalle-value" style="font-size: 0.95rem; color: #666;">Modifica tu contraseña</div>
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

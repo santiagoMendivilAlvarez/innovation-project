@@ -1,0 +1,167 @@
+{% extends 'utils/base.html' %}
+{% load static %}
+
+{% block title %}Cambiar Contraseña - BookieWookie{% endblock %}
+
+{% block content %}
+<div class="container-detail">
+    <div class="breadcrumb">
+        <a href="{% url 'configuracion' %}">← Volver a configuración</a>
+    </div>
+
+    <div class="book-main-card">
+        <h1 style="text-align: center; color: #1976d2; margin-bottom: 2rem;">Cambiar Contraseña</h1>
+        
+        <div class="info-section" style="margin-bottom: 2rem;">
+            <p style="color: #666; font-size: 0.95rem;">
+                Por seguridad, necesitarás ingresar tu contraseña actual antes de crear una nueva.
+            </p>
+        </div>
+        
+        {% if messages %}
+            <div class="message-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <form method="post" id="passwordForm">
+            {% csrf_token %}
+            
+            <div class="detalles-section">
+                <h2>Contraseña Actual</h2>
+                
+                <div class="form-group">
+                    <label for="old_password">Contraseña actual</label>
+                    <input type="password" 
+                           id="old_password" 
+                           name="old_password" 
+                           class="form-control" 
+                           placeholder="Tu contraseña actual"
+                           required>
+                    {% if form.old_password.errors %}
+                        <div class="field-errors">
+                            {% for error in form.old_password.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="detalles-section" style="margin-top: 2rem;">
+                <h2>Nueva Contraseña</h2>
+                
+                <div class="form-group">
+                    <label for="new_password1">Nueva contraseña</label>
+                    <input type="password" 
+                           id="new_password1" 
+                           name="new_password1" 
+                           class="form-control" 
+                           placeholder="Nueva contraseña"
+                           required>
+                    <div class="requirements">
+                        Requisitos: mínimo 8 caracteres, no muy común, no enteramente numérica
+                    </div>
+                    {% if form.new_password1.errors %}
+                        <div class="field-errors">
+                            {% for error in form.new_password1.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password2">Confirmar nueva contraseña</label>
+                    <input type="password" 
+                           id="new_password2" 
+                           name="new_password2" 
+                           class="form-control" 
+                           placeholder="Confirma tu nueva contraseña"
+                           required>
+                    {% if form.new_password2.errors %}
+                        <div class="field-errors">
+                            {% for error in form.new_password2.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <a href="{% url 'configuracion' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('passwordForm');
+    const oldPassword = document.getElementById('old_password');
+    const newPassword1 = document.getElementById('new_password1');
+    const newPassword2 = document.getElementById('new_password2');
+
+    newPassword2.addEventListener('input', function() {
+        if (newPassword1.value !== this.value) {
+            this.style.borderColor = '#f44336';
+        } else if (this.value.length > 0) {
+            this.style.borderColor = '#4caf50';
+        } else {
+            this.style.borderColor = '';
+        }
+    });
+
+    newPassword1.addEventListener('input', function() {
+        if (newPassword2.value.length > 0) {
+            if (this.value !== newPassword2.value) {
+                newPassword2.style.borderColor = '#f44336';
+            } else {
+                newPassword2.style.borderColor = '#4caf50';
+            }
+        }
+    });
+
+    // Validación antes de enviar
+    form.addEventListener('submit', function(e) {
+        let hasError = false;
+        
+        // Validar que la contraseña actual no esté vacía
+        if (!oldPassword.value.trim()) {
+            e.preventDefault();
+            alert('Debes ingresar tu contraseña actual');
+            oldPassword.focus();
+            return false;
+        }
+
+        // Validar que la nueva contraseña tenga al menos 8 caracteres
+        if (newPassword1.value.length < 8) {
+            e.preventDefault();
+            alert('La nueva contraseña debe tener al menos 8 caracteres');
+            newPassword1.focus();
+            return false;
+        }
+
+        if (newPassword1.value !== newPassword2.value) {
+            e.preventDefault();
+            alert('Las contraseñas no coinciden');
+            newPassword2.focus();
+            return false;
+        }
+
+        if (oldPassword.value === newPassword1.value) {
+            e.preventDefault();
+            alert('La nueva contraseña debe ser diferente a la actual');
+            newPassword1.focus();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
