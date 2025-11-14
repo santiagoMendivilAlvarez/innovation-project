@@ -8,7 +8,12 @@
       "Bash(\".\\venv\\Scripts\\python.exe\" manage.py migrate chatbot)",
       "Bash(.venvScriptspython.exe manage.py runserver)",
       "Bash(timeout 3 bash:*)",
-      "Bash(python manage.py runserver:*)"
+      "Bash(python manage.py runserver:*)",
+      "Bash(.venvScriptspython.exe manage.py collectstatic --noinput)",
+      "Bash(\".\\venv\\Scripts\\python.exe\" manage.py collectstatic --noinput)",
+      "Bash(\".\\venv\\Scripts\\python.exe\" manage.py runserver --noreload)",
+      "Bash(\".\\venv\\Scripts\\python.exe\" manage.py collectstatic --clear --noinput)",
+      "Bash(\".\\venv\\Scripts\\python.exe\" -c \"from django.core.cache import cache; cache.clear(); print(''Cache cleared successfully'')\")"
     ],
     "deny": [],
     "ask": []

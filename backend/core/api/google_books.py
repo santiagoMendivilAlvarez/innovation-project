@@ -188,6 +188,21 @@ class GoogleBooksAPI:
             data = response.json()
 
             book_info = data.get('volumeInfo', {})
+            sale_info = data.get('saleInfo', {})
+
+            # Extract price information
+            price = None
+            currency = None
+            if sale_info.get('saleability') == 'FOR_SALE':
+                retail_price = sale_info.get('retailPrice', {})
+                list_price = sale_info.get('listPrice', {})
+                if retail_price:
+                    price = retail_price.get('amount')
+                    currency = retail_price.get('currencyCode')
+                elif list_price:
+                    price = list_price.get('amount')
+                    currency = list_price.get('currencyCode')
+
             result = {
                 'id': data.get('id', book_id),
                 'title': book_info.get('title', 'N/A'),
@@ -201,6 +216,10 @@ class GoogleBooksAPI:
                 'categories': book_info.get('categories', []),
                 'thumbnail': book_info.get('imageLinks', {}).get('thumbnail', '').replace('http://', 'https://'),
                 'previewLink': book_info.get('previewLink', '#'),
+                'buyLink': sale_info.get('buyLink', ''),
+                'price': price,
+                'currency': currency,
+                'saleability': sale_info.get('saleability', 'NOT_FOR_SALE'),
             }
 
             cache.set(cache_key, result, 86400)

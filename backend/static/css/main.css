@@ -2847,3 +2847,495 @@ select.form-control {
         font-size: 1.5rem;
     }
 }
+
+/* ===================================
+   AVAILABILITY SECTION STYLES
+   =================================== */
+.disponibilidad-section {
+    margin-top: 30px;
+}
+
+.disponibilidad-section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+}
+
+.availability-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: white;
+    color: #666;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.filter-btn:hover {
+    border-color: #999;
+    color: #333;
+}
+
+.filter-btn.active {
+    background: #f5f5f5;
+    color: #333;
+    border-color: #999;
+}
+
+.availability-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.availability-card {
+    background: white;
+    border: 2px solid #3b82f6;
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.availability-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.availability-card-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 20px;
+}
+
+.platform-logo-section {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.platform-logo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.mercadolibre-logo svg {
+    width: 50px;
+    height: 50px;
+}
+
+.amazon-logo svg {
+    width: 50px;
+    height: 50px;
+}
+
+.google-logo {
+    font-size: 2rem;
+}
+
+.availability-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.availability-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.platform-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.price-tag {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #16a34a;
+}
+
+.availability-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-item {
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+.detail-item strong {
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+.availability-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.favorite-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    background: #fef3c7;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+}
+
+.favorite-btn:hover {
+    background: #fde68a;
+    transform: scale(1.05);
+}
+
+.rating-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    background: #fef3c7;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.rating-btn:hover {
+    background: #fde68a;
+    transform: scale(1.05);
+}
+
+.availability-link-btn {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.availability-link-btn:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.more-options-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.more-options-link a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.more-options-link a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive styles for availability section */
+@media (max-width: 768px) {
+    .availability-filters {
+        gap: 8px;
+    }
+
+    .filter-btn {
+        padding: 6px 16px;
+        font-size: 0.8rem;
+    }
+
+    .availability-card-content {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .platform-logo-section {
+        width: 50px;
+        height: 50px;
+    }
+
+    .availability-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .price-tag {
+        font-size: 1.2rem;
+    }
+
+    .detail-item {
+        font-size: 0.8rem;
+    }
+
+    .availability-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 480px) {
+    .availability-card-content {
+        padding: 15px;
+    }
+
+    .availability-header {
+        width: 100%;
+    }
+
+    .availability-actions {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .availability-link-btn {
+        flex: 1;
+    }
+}
+
+/* ===================================
+   RELATED BOOKS SECTION - ENHANCED
+   =================================== */
+.libros-relacionados-section {
+    margin-top: 20px;
+}
+
+.libros-relacionados-section h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #3b82f6;
+    display: inline-block;
+}
+
+.libros-grid-relacionados {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 24px;
+    margin-top: 30px;
+}
+
+.libro-card-relacionado {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    position: relative;
+}
+
+.libro-card-relacionado:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.15);
+}
+
+.libro-card-relacionado::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.libro-card-relacionado:hover::before {
+    opacity: 1;
+}
+
+.libro-portada-relacionado {
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.libro-portada-relacionado img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.libro-card-relacionado:hover .libro-portada-relacionado img {
+    transform: scale(1.05);
+}
+
+.libro-portada-placeholder {
+    font-size: 4rem;
+    color: #cbd5e1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.libro-info-relacionado {
+    padding: 16px;
+    background: white;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.libro-info-relacionado h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+    min-height: 2.8em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.libro-info-relacionado .libro-autor {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0;
+    font-weight: 500;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Badge for book source */
+.libro-card-relacionado .book-source-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Empty state styling */
+.libros-relacionados-section .placeholder-box {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.libros-relacionados-section .placeholder-box p:first-child {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.libros-relacionados-section .placeholder-box p:last-child {
+    color: #64748b;
+    font-size: 1rem;
+}
+
+/* Responsive styles for related books */
+@media (max-width: 1024px) {
+    .libros-grid-relacionados {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .libros-relacionados-section h2 {
+        font-size: 1.5rem;
+    }
+
+    .libros-grid-relacionados {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .libro-portada-relacionado {
+        height: 180px;
+    }
+
+    .libro-info-relacionado h4 {
+        font-size: 0.85rem;
+        min-height: 2.4em;
+    }
+
+    .libro-info-relacionado .libro-autor {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .libros-grid-relacionados {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .libro-portada-relacionado {
+        height: 160px;
+    }
+
+    .libro-info-relacionado {
+        padding: 12px;
+    }
+
+    .libro-info-relacionado h4 {
+        font-size: 0.8rem;
+    }
+}
