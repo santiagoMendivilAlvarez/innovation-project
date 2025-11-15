@@ -235,7 +235,6 @@ def book_search(request):
     
     return render(request, 'book_search.html', context)
 
-@login_required
 def book_search_view(request):
     """
     Book search: database first, then Google Books and Amazon APIs.
@@ -243,7 +242,7 @@ def book_search_view(request):
     from core.api.google_books import GoogleBooksAPI
     from core.api.amazon_books import AmazonBooksAPI
 
-    user = request.user
+    user = request.user if request.user.is_authenticated else None
     search_query = request.GET.get('search', '').strip()
 
     all_books = []
@@ -421,19 +420,20 @@ def book_detail_view(request, book_id):
     Auto-detects if book_id is numeric (database) or string (API).
     """
     source = request.GET.get('source', None)
-    
+
     if not source:
         try:
             int(book_id)
             if Libro.objects.filter(id=book_id).exists():
                 source = 'database'
             else:
-                source = 'google'  
+                source = 'google'
         except (ValueError, TypeError):
             source = 'google'
-    
+
     book = None
     error = None
+    availability_options = []
     
     if source == 'google':
         try:
@@ -503,18 +503,157 @@ def book_detail_view(request, book_id):
     else:
         error = 'Fuente de datos no válida'
 
+    # Build availability options
+    if book and not error:
+        book_title = book.get('title', '')
+        book_categories = book.get('categories', [])
+
+        # Try to find on Amazon
+        if book_title:
+            try:
+                amazon_result = amazon_api.search_books(book_title, max_results=1)
+                if isinstance(amazon_result, dict) and 'books' in amazon_result and amazon_result['books']:
+                    amazon_book = amazon_result['books'][0]
+                    amazon_price = amazon_book.get('price', 'Precio no disponible')
+                    availability_options.append({
+                        'platform': 'Amazon',
+                        'platform_logo': 'amazon',
+                        'price': amazon_price,
+                        'language': 'Español',
+                        'format': 'Físico',
+                        'stock': f"{amazon_book.get('availability', 'Consultar')} disponible" if amazon_book.get('availability') else 'Consultar disponibilidad',
+                        'link': amazon_book.get('amazon_url', f'https://www.amazon.com.mx/s?k={book_title.replace(" ", "+")}'),
+                        'link_text': 'Ver en Amazon',
+                        'show_favorite': False,
+                        'rating': amazon_book.get('rating', None)
+                    })
+                else:
+                    # Fallback Amazon option - link to search
+                    availability_options.append({
+                        'platform': 'Amazon',
+                        'platform_logo': 'amazon',
+                        'price': 'Ver precio',
+                        'language': 'Español',
+                        'format': 'Físico',
+                        'stock': 'Consultar disponibilidad',
+                        'link': f'https://www.amazon.com.mx/s?k={book_title.replace(" ", "+")}',
+                        'link_text': 'Buscar en Amazon',
+                        'show_favorite': False,
+                        'rating': None
+                    })
+            except Exception as e:
+                print(f"[DEBUG] Error fetching Amazon data: {e}")
+                # Fallback Amazon option
+                availability_options.append({
+                    'platform': 'Amazon',
+                    'platform_logo': 'amazon',
+                    'price': 'Ver precio',
+                    'language': 'Español',
+                    'format': 'Físico / Digital',
+                    'stock': 'Consultar disponibilidad',
+                    'link': f'https://www.amazon.com.mx/s?k={book_title.replace(" ", "+")}',
+                    'link_text': 'Buscar en Amazon',
+                    'show_favorite': False,
+                    'rating': None
+                })
+
+        # Google Books option (always available for Google source)
+        if source == 'google':
+            preview_link = book.get('previewLink', '')
+            buy_link = book.get('buyLink', '')
+
+            # Format price from Google Books
+            google_price = None
+            if book.get('price') and book.get('currency'):
+                if book.get('currency') == 'USD':
+                    google_price = f"${book.get('price'):.2f} USD"
+                elif book.get('currency') == 'MXN':
+                    google_price = f"${book.get('price'):.2f} MXN"
+                else:
+                    google_price = f"{book.get('price'):.2f} {book.get('currency')}"
+
+            # Determine the best link (buy link if available, otherwise preview)
+            best_link = buy_link if buy_link else preview_link
+            link_text = 'Comprar en Google Books' if buy_link else 'Ver vista previa'
+
+            # Determine stock based on saleability
+            saleability = book.get('saleability', 'NOT_FOR_SALE')
+            if saleability == 'FOR_SALE':
+                stock_text = 'Disponible para compra'
+            elif saleability == 'FREE':
+                stock_text = 'Gratis'
+                google_price = 'Gratis'
+            else:
+                stock_text = 'Solo vista previa'
+                google_price = google_price or 'No disponible para compra'
+
+            if best_link:
+                availability_options.append({
+                    'platform': 'Google Books',
+                    'platform_logo': 'google',
+                    'price': google_price,
+                    'language': 'Múltiples idiomas',
+                    'format': 'Digital',
+                    'stock': stock_text,
+                    'link': best_link,
+                    'link_text': link_text,
+                    'show_favorite': True,
+                    'rating': None
+                })
+
+    # Get AI recommendations for related books
+    related_books = []
+    if book and not error:
+        try:
+            from core.services.ai_recommendations import AIRecommendationService
+
+            ai_service = AIRecommendationService()
+            book_title = book.get('title', '')
+            book_categories = book.get('categories', [])
+
+            # Use the first category if available, otherwise use the book title
+            category_for_search = book_categories[0] if book_categories else book_title
+
+            # Get personalized recommendations
+            related_books = ai_service.get_books_by_category(
+                category_name=category_for_search,
+                num_books=6,
+                user=request.user if request.user.is_authenticated else None
+            )
+
+            # Format related books for template
+            formatted_related_books = []
+            for related_book in related_books:
+                formatted_related_books.append({
+                    'source': 'google',
+                    'id': related_book.get('id', 'unknown'),
+                    'title': related_book.get('title', 'N/A'),
+                    'authors': related_book.get('authors', []),
+                    'thumbnail': related_book.get('thumbnail', ''),
+                    'description': related_book.get('description', 'N/A'),
+                })
+            related_books = formatted_related_books
+
+        except Exception as e:
+            print(f"[DEBUG] Error fetching related books: {e}")
+            related_books = []
+
     # Debug info
     print(f"[DEBUG] Source: {source}")
     print(f"[DEBUG] Book ID: {book_id}")
     print(f"[DEBUG] Book data exists: {book is not None}")
     if book:
         print(f"[DEBUG] Book title: {book.get('title', 'N/A')}")
+    print(f"[DEBUG] Availability options: {len(availability_options)}")
+    print(f"[DEBUG] Related books: {len(related_books)}")
 
     context = {
         'user': request.user,
         'book': book,
         'source': source,
-        'error': error
+        'error': error,
+        'availability_options': availability_options,
+        'related_books': related_books
     }
 
     return render(request, 'book_detail.html', context)

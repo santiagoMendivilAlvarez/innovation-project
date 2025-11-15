@@ -112,22 +112,129 @@
 
             <div class="disponibilidad-section">
                 <h2>Disponibilidad</h2>
-                
-                <div class="placeholder-box">
-                    <p>📦 Información de disponibilidad y precios</p>
-                    <p>Se mostrará próximamente</p>
-                </div>
+
+                {% if availability_options %}
+                    <div class="availability-filters">
+                        <button class="filter-btn active">Precio</button>
+                        <button class="filter-btn">Stock</button>
+                        <button class="filter-btn">Idioma</button>
+                        <button class="filter-btn">Plataforma</button>
+                    </div>
+
+                    <div class="availability-options">
+                        {% for option in availability_options %}
+                        <div class="availability-card">
+                            <div class="availability-card-content">
+                                <div class="platform-logo-section">
+                                    {% if option.platform_logo == 'mercadolibre' %}
+                                        <div class="platform-logo mercadolibre-logo">
+                                            <svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="25" cy="25" r="15" fill="#FFE600"/>
+                                                <path d="M 20 20 L 25 30 L 30 20" stroke="#000" stroke-width="2" fill="none"/>
+                                            </svg>
+                                        </div>
+                                    {% elif option.platform_logo == 'amazon' %}
+                                        <div class="platform-logo amazon-logo">
+                                            <svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+                                                <text x="10" y="30" font-family="Arial" font-size="24" font-weight="bold" fill="#FF9900">a</text>
+                                                <path d="M 15 32 Q 40 28 50 32" stroke="#FF9900" stroke-width="2" fill="none"/>
+                                            </svg>
+                                        </div>
+                                    {% elif option.platform_logo == 'google' %}
+                                        <div class="platform-logo google-logo">📚</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="availability-info">
+                                    <div class="availability-header">
+                                        <h3 class="platform-name">{{ option.platform }}</h3>
+                                        {% if option.price %}
+                                            <div class="price-tag">{{ option.price }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="availability-details">
+                                        <div class="detail-item">
+                                            • Idioma: <strong>{{ option.language }}</strong>
+                                        </div>
+                                        <div class="detail-item">
+                                            • Formato: <strong>{{ option.format }}</strong>
+                                        </div>
+                                        <div class="detail-item">
+                                            • Stock: <strong>{{ option.stock }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="availability-actions">
+                                    {% if option.show_favorite %}
+                                        <button class="favorite-btn" onclick="agregarABiblioteca()" title="Agregar a favoritos">
+                                            <span>⭐</span>
+                                        </button>
+                                    {% elif option.rating %}
+                                        <button class="rating-btn" title="Calificación">
+                                            <span>{{ option.rating }}</span>
+                                        </button>
+                                    {% endif %}
+                                    {% if option.link %}
+                                        <a href="{{ option.link }}" target="_blank" class="availability-link-btn">
+                                            {{ option.link_text }}
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="more-options-link">
+                        <a href="javascript:void(0)">Ver más opciones</a>
+                    </div>
+                {% else %}
+                    <div class="placeholder-box">
+                        <p>📦 Información de disponibilidad y precios</p>
+                        <p>No hay opciones de compra disponibles en este momento</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
         <div class="book-main-card">
             <div class="libros-relacionados-section">
                 <h2>Libros relacionados</h2>
-                
-                <div class="placeholder-box" style="padding: 70px 20px;">
-                    <p>📚 Recomendaciones personalizadas</p>
-                    <p>Se mostrarán próximamente</p>
-                </div>
+
+                {% if related_books %}
+                    <div class="libros-grid-relacionados">
+                        {% for related_book in related_books %}
+                        <a href="{% url 'book_detail' related_book.id %}?source={{ related_book.source }}" class="libro-card-relacionado">
+                            <div class="libro-portada-relacionado">
+                                {% if related_book.thumbnail %}
+                                    <img src="{{ related_book.thumbnail }}" alt="{{ related_book.title }}"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="libro-portada-placeholder" style="display: none;">
+                                        📚
+                                    </div>
+                                {% else %}
+                                    <div class="libro-portada-placeholder">
+                                        📚
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="libro-info-relacionado">
+                                <h4>{{ related_book.title|truncatewords:8 }}</h4>
+                                {% if related_book.authors %}
+                                    <p class="libro-autor">{{ related_book.authors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="placeholder-box" style="padding: 70px 20px;">
+                        <p>📚 Recomendaciones personalizadas</p>
+                        <p>Cargando recomendaciones...</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     {% else %}
